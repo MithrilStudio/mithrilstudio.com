@@ -1,28 +1,120 @@
 <!doctype html>
-<html lang="zh-CN">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Mithril Studio</title>
-  <style>
-    html,
-    body {
-      margin: 0;
-      min-height: 100%;
-    }
+<html lang="en-US">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Mithril Studio</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&display=swap" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <style type="text/tailwindcss">
+      @theme {
+        --color-primary-bg: #0a0a0f;
+        --color-secondary-bg: #1a1a2e;
+        --color-primary-text: #e8e6e3;
+        --color-accent: #7b6b57;
+        --color-secondary: #8b7355;
+        --font-heading: "Cinzel", serif;
+      }
+      html {
+        scroll-behavior: smooth;
+      }
+      body {
+        background-color: var(--color-primary-bg);
+        color: var(--color-primary-text);
+        font-family:
+          system-ui,
+          -apple-system,
+          "Segoe UI",
+          Roboto,
+          sans-serif;
+        min-height: 100vh;
+        margin: 0;
+        line-height: 1.6;
+        letter-spacing: 0.02em;
+      }
+      h1,
+      h2,
+      h3,
+      h4,
+      h5,
+      h6 {
+        font-family: var(--font-heading);
+        letter-spacing: 0.05em;
+      }
+      .texture-overlay {
+        position: fixed;
+        inset: 0;
+        pointer-events: none;
+        z-index: 0;
+        opacity: 0.03;
+        background-image:
+          repeating-linear-gradient(
+            0deg,
+            transparent,
+            transparent 2px,
+            rgba(201, 168, 76, 0.15) 2px,
+            rgba(201, 168, 76, 0.15) 3px
+          ),
+          repeating-linear-gradient(
+            90deg,
+            transparent,
+            transparent 4px,
+            rgba(139, 115, 85, 0.1) 4px,
+            rgba(139, 115, 85, 0.1) 5px
+          );
+      }
 
-    body {
-      background: #000;
-    }
+      span[class*="tag_bg.png"] {
+        border-radius: 3px;
+        overflow: hidden;
+      }
+    </style>
+  </head>
+  <body class="bg-[#05070f]">
+    <div class="min-h-screen text-primary-text relative">
+      <div class="texture-overlay" aria-hidden="true"></div>
 
-    img {
-      display: block;
-      width: 100%;
-      height: auto;
-    }
-  </style>
-</head>
-<body>
-  <img src="static/main_bg.png" alt="">
-</body>
+      <div class="relative z-10">
+        <section id="hero" class="relative min-h-screen flex items-center justify-center overflow-hidden">
+          <video class="absolute inset-0 w-full h-full object-cover" aria-hidden="true" autoplay muted loop playsinline>
+            <source src="./static/bg.mp4" type="video/mp4" />
+          </video>
+          <div
+            class="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_rgba(201,168,76,0.08)_0%,_transparent_70%)]"
+            aria-hidden="true"
+          ></div>
+
+          <div class="relative z-10 text-center px-4 sm:px-6 lg:px-8 max-w-5xl mx-auto -mt-14 sm:mt-0">
+            <h1 class="mb-5 sm:mb-8 leading-tight">
+              <img
+                src="./static/logo1.png"
+                alt="Dungeon Enigma"
+                class="mx-auto w-full max-w-[520px] sm:max-w-[680px] lg:max-w-[760px] h-auto"
+              />
+            </h1>
+            <div class="mb-6 sm:mb-8">
+              <a href="javascript:void(0)" style="display: inline-block">
+                <img
+                  src="./static/btn_more.png"
+                  alt="Subscribe"
+                  class="mx-auto w-[220px] sm:w-[280px] lg:w-[360px] h-auto"
+                />
+              </a>
+            </div>
+            <img
+              src="./static/txt_slogan.png"
+              alt="First-Person Medieval Extraction Looter RPG"
+              class="mx-auto w-[280px] sm:w-[420px] lg:w-[560px] h-auto opacity-95"
+            />
+          </div>
+        </section>
+
+        <div class="relative w-full flex justify-center">
+          <img src="./static/bottom_highlight.png" alt="" aria-hidden="true" class="h-[2px] w-auto" />
+        </div>
+      </div>
+    </div>
+  </body>
 </html>
