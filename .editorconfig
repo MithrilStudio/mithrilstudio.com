@@ -1,0 +1,72 @@
+# EditorConfig — https://editorconfig.org
+# Top-most EditorConfig file for the home-router-maintainer workspace.
+root = true
+
+# ---------------------------------------------------------------------------
+# Defaults for every file: UTF-8, LF, final newline, trimmed trailing space,
+# 2-space indentation, and a 120-column guide for code/config files.
+# ---------------------------------------------------------------------------
+[*]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
+indent_style = space
+indent_size = 2
+max_line_length = 120
+
+# Markdown: keep trailing spaces (hard line breaks) and don't cap prose width.
+[*.{md,markdown}]
+trim_trailing_whitespace = false
+max_line_length = off
+
+# YAML
+[*.{yml,yaml}]
+indent_size = 2
+
+# JSON / JSON-with-comments
+[*.{json,jsonc}]
+indent_size = 2
+
+# Shell scripts (POSIX sh / bash)
+[*.{sh,bash}]
+indent_size = 2
+end_of_line = lf
+
+# PowerShell (Windows-first: CRLF, 4-space indent per community style guide)
+[*.{ps1,psm1,psd1}]
+indent_size = 4
+end_of_line = crlf
+
+# Windows batch files
+[*.{bat,cmd}]
+indent_size = 4
+end_of_line = crlf
+
+# Python (PEP 8 indentation; line length lifted to 120 per repo policy)
+[*.py]
+indent_size = 4
+
+# Node.js / web sources (JS, TS, JSX/TSX, Vue, Svelte) — Prettier-style 2-space
+[*.{js,cjs,mjs,jsx,ts,cts,mts,tsx,vue,svelte}]
+indent_size = 2
+
+# Web assets & styles (CSS family, HTML, SVG, JSON5)
+[*.{css,scss,sass,less,html,htm,svg,json5}]
+indent_size = 2
+
+# Ruby & Lua — community-standard 2-space indentation
+[*.{rb,lua}]
+indent_size = 2
+
+# PHP (PSR-12) & Perl — 4-space indentation
+[*.{php,pl,pm}]
+indent_size = 4
+
+# SQL
+[*.sql]
+indent_size = 2
+
+# Makefiles require real tabs
+[{Makefile,makefile,*.mk}]
+indent_style = tab

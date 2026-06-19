@@ -1,0 +1,141 @@
+# ---------------------------------------------------------------------------
+# Git attributes for the home-router-maintainer workspace.
+# Goal: deterministic line endings, UTF-8 text, and correct binary handling.
+# Convention: text is stored as LF in the repo; only Windows-only scripts use CRLF.
+# ---------------------------------------------------------------------------
+
+# Auto-detect text vs binary, and normalize all committed text to LF.
+* text=auto eol=lf
+
+# --- Documentation & data (force LF) ---------------------------------------
+*.md        text eol=lf
+*.markdown  text eol=lf
+*.txt       text eol=lf
+*.json      text eol=lf
+*.jsonc     text eol=lf
+*.yml       text eol=lf
+*.yaml      text eol=lf
+*.toml      text eol=lf
+*.ini       text eol=lf
+*.cfg       text eol=lf
+*.conf      text eol=lf
+*.env       text eol=lf
+*.sh        text eol=lf
+*.bash      text eol=lf
+*.py        text eol=lf
+
+# --- Node.js / web sources (force LF) --------------------------------------
+*.js        text eol=lf
+*.cjs       text eol=lf
+*.mjs       text eol=lf
+*.jsx       text eol=lf
+*.ts        text eol=lf
+*.cts       text eol=lf
+*.mts       text eol=lf
+*.tsx       text eol=lf
+*.vue       text eol=lf
+*.svelte    text eol=lf
+*.json5     text eol=lf
+*.css       text eol=lf
+*.scss      text eol=lf
+*.sass      text eol=lf
+*.less      text eol=lf
+*.html      text eol=lf
+*.htm       text eol=lf
+*.svg       text eol=lf
+yarn.lock   text eol=lf
+
+# --- Other scripting languages (force LF) ----------------------------------
+*.rb        text eol=lf
+*.lua       text eol=lf
+*.php       text eol=lf
+*.pl        text eol=lf
+*.pm        text eol=lf
+*.sql       text eol=lf
+
+# --- Windows-only scripts (force CRLF) -------------------------------------
+*.bat   text eol=crlf
+*.cmd   text eol=crlf
+*.ps1   text eol=crlf
+*.psm1  text eol=crlf
+*.psd1  text eol=crlf
+
+# --- Git / editor metadata (force LF) --------------------------------------
+.gitattributes  text eol=lf
+.gitignore      text eol=lf
+.editorconfig   text eol=lf
+.markdownlint.json text eol=lf
+
+# ---------------------------------------------------------------------------
+# Binary assets via Git LFS (run `git lfs install` once per machine first).
+# LFS keeps the repo lean and prevents EOL/diff corruption on binary blobs.
+# ---------------------------------------------------------------------------
+
+# --- Images ----------------------------------------------------------------
+*.png   filter=lfs diff=lfs merge=lfs -text
+*.jpg   filter=lfs diff=lfs merge=lfs -text
+*.jpeg  filter=lfs diff=lfs merge=lfs -text
+*.gif   filter=lfs diff=lfs merge=lfs -text
+*.webp  filter=lfs diff=lfs merge=lfs -text
+*.bmp   filter=lfs diff=lfs merge=lfs -text
+*.tif   filter=lfs diff=lfs merge=lfs -text
+*.tiff  filter=lfs diff=lfs merge=lfs -text
+*.ico   filter=lfs diff=lfs merge=lfs -text
+*.heic  filter=lfs diff=lfs merge=lfs -text
+*.avif  filter=lfs diff=lfs merge=lfs -text
+*.psd   filter=lfs diff=lfs merge=lfs -text
+# Note: *.svg is XML and stays text (see above), so it is intentionally not LFS.
+
+# --- Audio -----------------------------------------------------------------
+*.mp3   filter=lfs diff=lfs merge=lfs -text
+*.wav   filter=lfs diff=lfs merge=lfs -text
+*.flac  filter=lfs diff=lfs merge=lfs -text
+*.aac   filter=lfs diff=lfs merge=lfs -text
+*.ogg   filter=lfs diff=lfs merge=lfs -text
+*.oga   filter=lfs diff=lfs merge=lfs -text
+*.m4a   filter=lfs diff=lfs merge=lfs -text
+*.opus  filter=lfs diff=lfs merge=lfs -text
+*.wma   filter=lfs diff=lfs merge=lfs -text
+
+# --- Video -----------------------------------------------------------------
+*.mp4   filter=lfs diff=lfs merge=lfs -text
+*.m4v   filter=lfs diff=lfs merge=lfs -text
+*.mov   filter=lfs diff=lfs merge=lfs -text
+*.avi   filter=lfs diff=lfs merge=lfs -text
+*.mkv   filter=lfs diff=lfs merge=lfs -text
+*.webm  filter=lfs diff=lfs merge=lfs -text
+*.flv   filter=lfs diff=lfs merge=lfs -text
+*.wmv   filter=lfs diff=lfs merge=lfs -text
+*.mpg   filter=lfs diff=lfs merge=lfs -text
+*.mpeg  filter=lfs diff=lfs merge=lfs -text
+
+# --- Archives & compressed (incl. tar, zst) --------------------------------
+*.zip   filter=lfs diff=lfs merge=lfs -text
+*.tar   filter=lfs diff=lfs merge=lfs -text
+*.gz    filter=lfs diff=lfs merge=lfs -text
+*.tgz   filter=lfs diff=lfs merge=lfs -text
+*.bz2   filter=lfs diff=lfs merge=lfs -text
+*.xz    filter=lfs diff=lfs merge=lfs -text
+*.zst   filter=lfs diff=lfs merge=lfs -text
+*.7z    filter=lfs diff=lfs merge=lfs -text
+*.rar   filter=lfs diff=lfs merge=lfs -text
+*.lz    filter=lfs diff=lfs merge=lfs -text
+*.lz4   filter=lfs diff=lfs merge=lfs -text
+
+# --- Fonts -----------------------------------------------------------------
+*.woff  filter=lfs diff=lfs merge=lfs -text
+*.woff2 filter=lfs diff=lfs merge=lfs -text
+*.ttf   filter=lfs diff=lfs merge=lfs -text
+*.otf   filter=lfs diff=lfs merge=lfs -text
+*.eot   filter=lfs diff=lfs merge=lfs -text
+
+# --- Documents & disk / firmware images ------------------------------------
+*.pdf   filter=lfs diff=lfs merge=lfs -text
+*.iso   filter=lfs diff=lfs merge=lfs -text
+*.img   filter=lfs diff=lfs merge=lfs -text
+*.dmg   filter=lfs diff=lfs merge=lfs -text
+
+# --- Secrets / keys: never diff and never LFS (must stay out of the repo) ---
+*.key   binary
+*.pem   binary
+*.ppk   binary
