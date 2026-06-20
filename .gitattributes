@@ -69,6 +69,7 @@ yarn.lock   text eol=lf
 .markdownlint.json text eol=lf
 .github/**/*.yml   text eol=lf
 .github/**/*.yaml  text eol=lf
+.githooks/*        text eol=lf
 
 # ---------------------------------------------------------------------------
 # Git LFS assets.

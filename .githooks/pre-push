@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+remote_name=${1:-origin}
+remote_url=${2:-}
+repo_root=$(git rev-parse --show-toplevel)
+cd "$repo_root"
+
+stdin_file=$(mktemp)
+trap 'rm -f "$stdin_file"' EXIT
+cat > "$stdin_file"
+
+bash .githooks/lfs-guard.sh --push-stdin "$stdin_file" "$remote_name"
+git lfs pre-push "$remote_name" "$remote_url" < "$stdin_file"

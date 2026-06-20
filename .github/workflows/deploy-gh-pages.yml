@@ -30,6 +30,24 @@ jobs:
           fetch-depth: 1
           path: ${{ env.SOURCE_DIR }}
 
+      - name: Verify LFS tracking rules
+        shell: bash
+        working-directory: ${{ env.SOURCE_DIR }}
+        run: |
+          set -euo pipefail
+
+          bash .githooks/lfs-guard.sh --tree HEAD
+          git lfs fsck --pointers
+
+      - name: Verify LFS objects exist on origin
+        shell: bash
+        working-directory: ${{ env.SOURCE_DIR }}
+        run: |
+          set -euo pipefail
+
+          git lfs fetch origin HEAD
+          git lfs fsck --objects
+
       - name: Prepare publish directory
         shell: bash
         run: |
@@ -41,6 +59,7 @@ jobs:
           rsync -a --delete \
             --exclude='.git/' \
             --exclude='.github/' \
+            --exclude='.githooks/' \
             --exclude='.gitattributes' \
             --exclude="${PUBLISH_DIR}/" \
             "${SOURCE_DIR}/" "${PUBLISH_DIR}/"
