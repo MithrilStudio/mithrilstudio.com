@@ -80,6 +80,14 @@
         cursor: pointer;
       }
 
+      .hero-background-media {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+
       dialog::backdrop {
         background: rgba(3, 4, 8, 0.78);
         backdrop-filter: blur(4px);
@@ -184,9 +192,9 @@
 
       <div class="relative z-10">
         <section id="hero" class="relative min-h-screen flex items-center justify-center overflow-hidden">
-          <video class="absolute inset-0 w-full h-full object-cover" aria-hidden="true" autoplay muted loop playsinline>
-            <source src="./static/bg.mp4" type="video/mp4" />
-          </video>
+          <div id="heroBackground" class="absolute inset-0" aria-hidden="true">
+            <img class="hero-background-media" src="./static/bg.jpg" alt="" />
+          </div>
 
           <div
             class="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_rgba(201,168,76,0.08)_0%,_transparent_70%)]"
@@ -281,6 +289,133 @@
       const guessDialog = document.getElementById("guessDialog");
       const guessForm = document.getElementById("guessForm");
       const guessName = document.getElementById("guessName");
+      const heroBackground = document.getElementById("heroBackground");
+
+      (() => {
+        const backgroundVideoSources = {
+          standard: "./static/bg.mp4",
+          high: "./static/bg_4k.mp4",
+        };
+        let activeBackgroundKey = "poster";
+        let activeObjectUrl = null;
+        let highResolutionDownloaded = false;
+
+        if (!heroBackground || !window.fetch || !window.URL || !URL.createObjectURL) {
+          return;
+        }
+
+        const downloadVideo = async (key, src) => {
+          const response = await fetch(src);
+
+          if (!response.ok) {
+            throw new Error(`Unable to download ${src}: ${response.status}`);
+          }
+
+          return {
+            key,
+            objectUrl: URL.createObjectURL(await response.blob()),
+          };
+        };
+
+        const replaceBackgroundWithVideo = ({ key, objectUrl }) => {
+          if (key === "standard" && highResolutionDownloaded) {
+            URL.revokeObjectURL(objectUrl);
+            return;
+          }
+
+          if (activeBackgroundKey === "high" && key !== "high") {
+            URL.revokeObjectURL(objectUrl);
+            return;
+          }
+
+          const video = document.createElement("video");
+          video.className = "hero-background-media";
+          video.src = objectUrl;
+          video.poster = "./static/bg.jpg";
+          video.autoplay = true;
+          video.defaultMuted = true;
+          video.muted = true;
+          video.loop = true;
+          video.playsInline = true;
+          video.preload = "auto";
+          video.setAttribute("aria-hidden", "true");
+
+          let isSettled = false;
+          const settle = () => {
+            if (isSettled) {
+              return;
+            }
+
+            isSettled = true;
+
+            if (key === "standard" && highResolutionDownloaded) {
+              URL.revokeObjectURL(objectUrl);
+              return;
+            }
+
+            const previousObjectUrl = activeObjectUrl;
+            heroBackground.replaceChildren(video);
+            activeBackgroundKey = key;
+            activeObjectUrl = objectUrl;
+
+            const playPromise = video.play();
+            if (playPromise) {
+              playPromise.catch(() => {});
+            }
+
+            if (previousObjectUrl) {
+              URL.revokeObjectURL(previousObjectUrl);
+            }
+          };
+
+          video.addEventListener("loadeddata", settle, { once: true });
+          video.addEventListener(
+            "error",
+            () => {
+              if (!isSettled) {
+                URL.revokeObjectURL(objectUrl);
+              }
+            },
+            { once: true },
+          );
+          video.load();
+        };
+
+        const startBackgroundDownloads = () => {
+          downloadVideo("standard", backgroundVideoSources.standard)
+            .then((video) => {
+              if (highResolutionDownloaded) {
+                URL.revokeObjectURL(video.objectUrl);
+                return;
+              }
+
+              replaceBackgroundWithVideo(video);
+            })
+            .catch(() => {});
+
+          downloadVideo("high", backgroundVideoSources.high)
+            .then((video) => {
+              highResolutionDownloaded = true;
+              replaceBackgroundWithVideo(video);
+            })
+            .catch(() => {});
+        };
+
+        const queueBackgroundDownloads = () => {
+          if ("requestIdleCallback" in window) {
+            window.requestIdleCallback(startBackgroundDownloads, { timeout: 1500 });
+            return;
+          }
+
+          window.setTimeout(startBackgroundDownloads, 250);
+        };
+
+        if (document.readyState === "complete") {
+          queueBackgroundDownloads();
+        } else {
+          window.addEventListener("load", queueBackgroundDownloads, { once: true });
+        }
+      })();
 
       guessTrigger.addEventListener("click", () => {
         guessDialog.showModal();
