@@ -276,20 +276,35 @@
         </label>
 
         <button
+          id="guessSubmitButton"
           type="submit"
-          class="w-full rounded border border-[#c9a84c]/70 bg-[#7b6b57] px-4 py-3 font-heading text-sm uppercase text-[#fff9ef] transition hover:bg-[#8b7355] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#c9a84c]"
+          class="w-full rounded border border-[#c9a84c]/70 bg-[#7b6b57] px-4 py-3 font-heading text-sm uppercase text-[#fff9ef] transition hover:bg-[#8b7355] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#c9a84c] disabled:cursor-not-allowed disabled:opacity-60"
         >
           Submit
         </button>
+        <p id="guessFormStatus" class="min-h-[1.25rem] text-center text-sm text-[#c9a84c]" aria-live="polite"></p>
       </form>
     </dialog>
 
     <script>
+      const GUESS_SUBMISSION_ENDPOINT = "https://guess-name.mithrilstudio.com/api/guesses";
       const guessTrigger = document.getElementById("guessTrigger");
       const guessDialog = document.getElementById("guessDialog");
       const guessForm = document.getElementById("guessForm");
       const guessName = document.getElementById("guessName");
+      const guessSubmitButton = document.getElementById("guessSubmitButton");
+      const guessFormStatus = document.getElementById("guessFormStatus");
       const heroBackground = document.getElementById("heroBackground");
+
+      const setGuessFormStatus = (message = "", color = "#c9a84c") => {
+        guessFormStatus.textContent = message;
+        guessFormStatus.style.color = color;
+      };
+
+      const setGuessFormSubmitting = (isSubmitting) => {
+        guessSubmitButton.disabled = isSubmitting;
+        guessSubmitButton.textContent = isSubmitting ? "Submitting..." : "Submit";
+      };
 
       (() => {
         const backgroundVideoSources = {
@@ -418,6 +433,7 @@
       })();
 
       guessTrigger.addEventListener("click", () => {
+        setGuessFormStatus();
         guessDialog.showModal();
 
         if (window.matchMedia("(pointer: coarse)").matches) {
@@ -429,7 +445,7 @@
         }
       });
 
-      guessForm.addEventListener("submit", (event) => {
+      guessForm.addEventListener("submit", async (event) => {
         event.preventDefault();
 
         if (!guessForm.checkValidity()) {
@@ -437,8 +453,39 @@
           return;
         }
 
-        guessForm.reset();
-        guessDialog.close();
+        const formData = new FormData(guessForm);
+
+        setGuessFormSubmitting(true);
+        setGuessFormStatus("Submitting...");
+
+        try {
+          const response = await fetch(GUESS_SUBMISSION_ENDPOINT, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              guessName: formData.get("guessName"),
+              email: formData.get("email"),
+            }),
+          });
+
+          if (!response.ok) {
+            throw new Error("Unable to submit guess.");
+          }
+
+          guessForm.reset();
+          setGuessFormStatus("Submitted.");
+
+          window.setTimeout(() => {
+            guessDialog.close();
+            setGuessFormStatus();
+          }, 650);
+        } catch {
+          setGuessFormStatus("Unable to submit. Please try again.", "#f1a7a7");
+        } finally {
+          setGuessFormSubmitting(false);
+        }
       });
 
       guessDialog.addEventListener("click", (event) => {
