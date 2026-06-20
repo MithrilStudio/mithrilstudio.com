@@ -93,7 +93,8 @@
         backdrop-filter: blur(4px);
       }
 
-      #guessDialog {
+      #guessDialog,
+      #guessResultDialog {
         position: fixed;
         top: 50%;
         left: 50%;
@@ -119,7 +120,8 @@
         box-sizing: border-box;
       }
 
-      #guessDialog h2 {
+      #guessDialog h2,
+      #guessResultDialog h2 {
         margin: 0;
         color: #e8e6e3;
         font-family: "Cinzel", serif;
@@ -157,7 +159,9 @@
         box-shadow: 0 0 0 1px #c9a84c;
       }
 
-      #guessDialog button[type="submit"] {
+      #guessDialog button[type="submit"],
+      #guessResultConfirm {
+        width: 100%;
         min-height: 48px;
         border: 1px solid rgba(201, 168, 76, 0.7);
         border-radius: 4px;
@@ -170,12 +174,41 @@
       }
 
       #guessDialog button[type="submit"]:hover,
-      #guessDialog button[type="submit"]:focus-visible {
+      #guessDialog button[type="submit"]:focus-visible,
+      #guessResultConfirm:hover,
+      #guessResultConfirm:focus-visible {
         background: #8b7355;
       }
 
+      #guessResultPanel {
+        display: flex;
+        flex-direction: column;
+        gap: 18px;
+        padding: 28px 24px;
+        text-align: center;
+      }
+
+      #guessResultMessage {
+        margin: 0;
+        color: #d7d0c8;
+        font-size: 15px;
+        line-height: 1.7;
+        letter-spacing: 0;
+      }
+
+      #guessResultConfirm {
+        min-height: 48px;
+        cursor: pointer;
+        outline: none;
+      }
+
+      #guessResultConfirm:focus-visible {
+        box-shadow: 0 0 0 2px #c9a84c;
+      }
+
       @media (max-width: 480px) {
-        #guessDialog {
+        #guessDialog,
+        #guessResultDialog {
           width: calc(100vw - 32px);
           max-height: calc(100dvh - 32px);
         }
@@ -286,6 +319,20 @@
       </form>
     </dialog>
 
+    <dialog
+      id="guessResultDialog"
+      tabindex="-1"
+      class="rounded-md border border-[#7b6b57]/60 bg-[#0b0c12]/95 p-0 text-primary-text shadow-2xl shadow-black/60"
+      aria-labelledby="guessResultTitle"
+      aria-describedby="guessResultMessage"
+    >
+      <div id="guessResultPanel">
+        <h2 id="guessResultTitle">Your Whisper Is Sealed</h2>
+        <p id="guessResultMessage"></p>
+        <button id="guessResultConfirm" type="button">Confirm</button>
+      </div>
+    </dialog>
+
     <script>
       const GUESS_SUBMISSION_ENDPOINT = "https://guess-name.mithrilstudio.com/api/guesses";
       const guessTrigger = document.getElementById("guessTrigger");
@@ -294,6 +341,10 @@
       const guessName = document.getElementById("guessName");
       const guessSubmitButton = document.getElementById("guessSubmitButton");
       const guessFormStatus = document.getElementById("guessFormStatus");
+      const guessResultDialog = document.getElementById("guessResultDialog");
+      const guessResultTitle = document.getElementById("guessResultTitle");
+      const guessResultMessage = document.getElementById("guessResultMessage");
+      const guessResultConfirm = document.getElementById("guessResultConfirm");
       const heroBackground = document.getElementById("heroBackground");
 
       const setGuessFormStatus = (message = "", color = "#c9a84c") => {
@@ -304,6 +355,20 @@
       const setGuessFormSubmitting = (isSubmitting) => {
         guessSubmitButton.disabled = isSubmitting;
         guessSubmitButton.textContent = isSubmitting ? "Submitting..." : "Submit";
+      };
+
+      const showGuessResult = ({ title, message }) => {
+        guessResultTitle.textContent = title;
+        guessResultMessage.textContent = message;
+
+        if (guessDialog.open) {
+          guessDialog.close();
+        }
+
+        guessResultDialog.showModal();
+        requestAnimationFrame(() => {
+          guessResultConfirm.focus({ preventScroll: true });
+        });
       };
 
       (() => {
@@ -475,14 +540,18 @@
           }
 
           guessForm.reset();
-          setGuessFormStatus("Submitted.");
-
-          window.setTimeout(() => {
-            guessDialog.close();
-            setGuessFormStatus();
-          }, 650);
+          setGuessFormStatus();
+          showGuessResult({
+            title: "Congratulations, Your Guess Is In",
+            message:
+              "Your whisper has been received. The answer will be revealed to everyone together in a future announcement.",
+          });
         } catch {
-          setGuessFormStatus("Unable to submit. Please try again.", "#f1a7a7");
+          setGuessFormStatus();
+          showGuessResult({
+            title: "The Whisper Did Not Reach Us",
+            message: "Something interrupted your submission. Please try again in a moment.",
+          });
         } finally {
           setGuessFormSubmitting(false);
         }
@@ -499,6 +568,10 @@
         if (isBackdropClick) {
           guessDialog.close();
         }
+      });
+
+      guessResultConfirm.addEventListener("click", () => {
+        guessResultDialog.close();
       });
     </script>
   </body>
