@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Mithril Studio</title>
+    <title>WE ARE BACK!</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&display=swap" rel="stylesheet" />
@@ -70,6 +70,112 @@
         border-radius: 3px;
         overflow: hidden;
       }
+
+    </style>
+    <style>
+      #guessTrigger {
+        border: 0;
+        background: transparent;
+        padding: 0;
+        cursor: pointer;
+      }
+
+      dialog::backdrop {
+        background: rgba(3, 4, 8, 0.78);
+        backdrop-filter: blur(4px);
+      }
+
+      #guessDialog {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        top: 50dvh;
+        left: 50vw;
+        width: min(92vw, 420px);
+        max-height: min(90dvh, 560px);
+        margin: 0;
+        overflow-y: auto;
+        transform: translate(-50%, -50%);
+        box-sizing: border-box;
+        -webkit-overflow-scrolling: touch;
+      }
+
+      #guessForm {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+        padding: 28px 24px;
+      }
+
+      #guessDialog form {
+        box-sizing: border-box;
+      }
+
+      #guessDialog h2 {
+        margin: 0;
+        color: #e8e6e3;
+        font-family: "Cinzel", serif;
+        font-size: 24px;
+        line-height: 1.25;
+        letter-spacing: 0;
+        text-align: center;
+      }
+
+      #guessDialog label {
+        display: block;
+        color: #d7d0c8;
+        font-size: 14px;
+        line-height: 1.4;
+        text-align: left;
+      }
+
+      #guessDialog input {
+        display: block;
+        width: 100%;
+        box-sizing: border-box;
+        margin-top: 8px;
+        border: 1px solid rgba(123, 107, 87, 0.7);
+        border-radius: 4px;
+        background: #15151d;
+        color: #f4efe8;
+        font-size: 16px;
+        line-height: 1.4;
+        padding: 12px;
+        outline: none;
+      }
+
+      #guessDialog input:focus {
+        border-color: #c9a84c;
+        box-shadow: 0 0 0 1px #c9a84c;
+      }
+
+      #guessDialog button[type="submit"] {
+        min-height: 48px;
+        border: 1px solid rgba(201, 168, 76, 0.7);
+        border-radius: 4px;
+        background: #7b6b57;
+        color: #fff9ef;
+        font-family: "Cinzel", serif;
+        font-size: 14px;
+        letter-spacing: 0;
+        text-transform: uppercase;
+      }
+
+      #guessDialog button[type="submit"]:hover,
+      #guessDialog button[type="submit"]:focus-visible {
+        background: #8b7355;
+      }
+
+      @media (max-width: 480px) {
+        #guessDialog {
+          width: calc(100vw - 32px);
+          max-height: calc(100dvh - 32px);
+        }
+
+        #guessForm {
+          padding: 24px 18px;
+        }
+      }
     </style>
   </head>
   <body class="bg-[#05070f]">
@@ -81,6 +187,7 @@
           <video class="absolute inset-0 w-full h-full object-cover" aria-hidden="true" autoplay muted loop playsinline>
             <source src="./static/bg.mp4" type="video/mp4" />
           </video>
+
           <div
             class="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_rgba(201,168,76,0.08)_0%,_transparent_70%)]"
             aria-hidden="true"
@@ -94,14 +201,21 @@
                 class="mx-auto w-full max-w-[520px] sm:max-w-[680px] lg:max-w-[760px] h-auto"
               />
             </h1>
+            <h1 class="mb-5 sm:mb-8 leading-tight text-1xl sm:text-2xl sm:whitespace-nowrap">
+              "Those who name the blood may earn the right to tread the dungeon."
+            </h1>
             <div class="mb-6 sm:mb-8">
-              <a href="javascript:void(0)" style="display: inline-block">
+              <button
+                id="guessTrigger"
+                type="button"
+                class="inline-block cursor-pointer border-0 bg-transparent p-0 transition duration-200 hover:scale-[1.02] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#c9a84c] focus-visible:ring-offset-4 focus-visible:ring-offset-[#05070f]"
+              >
                 <img
                   src="./static/btn_more.png"
-                  alt="Subscribe"
+                  alt="Whisper Your Guess"
                   class="mx-auto w-[220px] sm:w-[280px] lg:w-[360px] h-auto"
                 />
-              </a>
+              </button>
             </div>
             <img
               src="./static/txt_slogan.png"
@@ -116,5 +230,94 @@
         </div>
       </div>
     </div>
+
+    <dialog
+      id="guessDialog"
+      tabindex="-1"
+      class="rounded-md border border-[#7b6b57]/60 bg-[#0b0c12]/95 p-0 text-primary-text shadow-2xl shadow-black/60"
+      aria-labelledby="guessDialogTitle"
+    >
+      <form id="guessForm" class="space-y-5 px-6 py-7 sm:px-8" novalidate>
+        <div class="text-center">
+          <h2 id="guessDialogTitle" class="text-xl sm:text-2xl text-[#e8e6e3]">Whisper Your Guess</h2>
+        </div>
+
+        <label class="block text-left text-sm text-[#d7d0c8]">
+          Guess Name
+          <input
+            id="guessName"
+            name="guessName"
+            type="text"
+            required
+            autocomplete="off"
+            class="mt-2 block w-full rounded border border-[#7b6b57]/70 bg-[#15151d] px-3 py-3 text-base text-[#f4efe8] outline-none transition placeholder:text-[#8b8174] focus:border-[#c9a84c] focus:ring-1 focus:ring-[#c9a84c]"
+            placeholder="Enter the name"
+          />
+        </label>
+
+        <label class="block text-left text-sm text-[#d7d0c8]">
+          Email Address
+          <input
+            name="email"
+            type="email"
+            required
+            autocomplete="email"
+            class="mt-2 block w-full rounded border border-[#7b6b57]/70 bg-[#15151d] px-3 py-3 text-base text-[#f4efe8] outline-none transition placeholder:text-[#8b8174] focus:border-[#c9a84c] focus:ring-1 focus:ring-[#c9a84c]"
+            placeholder="you@example.com"
+          />
+        </label>
+
+        <button
+          type="submit"
+          class="w-full rounded border border-[#c9a84c]/70 bg-[#7b6b57] px-4 py-3 font-heading text-sm uppercase text-[#fff9ef] transition hover:bg-[#8b7355] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#c9a84c]"
+        >
+          Submit
+        </button>
+      </form>
+    </dialog>
+
+    <script>
+      const guessTrigger = document.getElementById("guessTrigger");
+      const guessDialog = document.getElementById("guessDialog");
+      const guessForm = document.getElementById("guessForm");
+      const guessName = document.getElementById("guessName");
+
+      guessTrigger.addEventListener("click", () => {
+        guessDialog.showModal();
+
+        if (window.matchMedia("(pointer: coarse)").matches) {
+          guessDialog.focus({ preventScroll: true });
+        } else {
+          requestAnimationFrame(() => {
+            guessName.focus({ preventScroll: true });
+          });
+        }
+      });
+
+      guessForm.addEventListener("submit", (event) => {
+        event.preventDefault();
+
+        if (!guessForm.checkValidity()) {
+          guessForm.reportValidity();
+          return;
+        }
+
+        guessForm.reset();
+        guessDialog.close();
+      });
+
+      guessDialog.addEventListener("click", (event) => {
+        const dialogBounds = guessDialog.getBoundingClientRect();
+        const isBackdropClick =
+          event.clientX < dialogBounds.left ||
+          event.clientX > dialogBounds.right ||
+          event.clientY < dialogBounds.top ||
+          event.clientY > dialogBounds.bottom;
+
+        if (isBackdropClick) {
+          guessDialog.close();
+        }
+      });
+    </script>
   </body>
 </html>
