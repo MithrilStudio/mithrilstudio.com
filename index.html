@@ -143,28 +143,6 @@
         font-family: var(--site-font-heading);
         letter-spacing: 0.05em;
       }
-      .texture-overlay {
-        position: fixed;
-        inset: 0;
-        pointer-events: none;
-        z-index: 0;
-        opacity: 0.03;
-        background-image:
-          repeating-linear-gradient(
-            0deg,
-            transparent,
-            transparent 2px,
-            rgba(201, 168, 76, 0.15) 2px,
-            rgba(201, 168, 76, 0.15) 3px
-          ),
-          repeating-linear-gradient(
-            90deg,
-            transparent,
-            transparent 4px,
-            rgba(139, 115, 85, 0.1) 4px,
-            rgba(139, 115, 85, 0.1) 5px
-          );
-      }
 
       span[class*="tag_bg.png"] {
         border-radius: 3px;
@@ -180,12 +158,74 @@
         cursor: pointer;
       }
 
+      #hero {
+        position: relative;
+        min-height: 100vh;
+        overflow: hidden;
+      }
+
+      #heroBackground {
+        position: absolute;
+        inset: 0;
+      }
+
       .hero-background-media {
         position: absolute;
         inset: 0;
         width: 100%;
         height: 100%;
         object-fit: cover;
+      }
+
+      .hero-art {
+        position: absolute;
+        top: 26.574vh;
+        left: 50vw;
+        z-index: 10;
+        display: flex;
+        width: 100vw;
+        transform: translateX(-50%);
+        flex-direction: column;
+        align-items: center;
+        pointer-events: none;
+      }
+
+      .hero-art img {
+        display: block;
+        max-width: 100%;
+        height: auto;
+      }
+
+      .hero-logo-frame {
+        margin: 0;
+        line-height: 0;
+      }
+
+      .hero-logo {
+        width: min(50.46875vw, 1938px);
+      }
+
+      .hero-guess-trigger {
+        display: block;
+        line-height: 0;
+        transform: translateX(min(0.0260417vw, 1px));
+        pointer-events: auto;
+      }
+
+      .hero-guess-image {
+        width: min(25.9375vw, 996px);
+      }
+
+      .hero-slogan-one {
+        width: min(50.0260417vw, 1921px);
+        margin-top: min(1.1458333vw, 44px);
+        transform: translateX(min(0.2213542vw, 8.5px));
+      }
+
+      .hero-slogan-two {
+        width: min(42.8125vw, 1644px);
+        margin-top: min(1.0416667vw, 40px);
+        transform: translateX(max(-0.1822917vw, -7px));
       }
 
       dialog::backdrop {
@@ -307,6 +347,34 @@
       }
 
       @media (max-width: 480px) {
+        .hero-art {
+          top: 20vh;
+        }
+
+        .hero-logo {
+          width: 92vw;
+        }
+
+        .hero-guess-trigger {
+          transform: none;
+        }
+
+        .hero-guess-image {
+          width: 48vw;
+        }
+
+        .hero-slogan-one {
+          width: 90vw;
+          margin-top: 5vw;
+          transform: none;
+        }
+
+        .hero-slogan-two {
+          width: 76vw;
+          margin-top: 4vw;
+          transform: none;
+        }
+
         #guessDialog,
         #guessResultDialog {
           width: calc(100vw - 32px);
@@ -321,51 +389,43 @@
   </head>
   <body class="bg-[#05070f]">
     <div class="min-h-screen text-primary-text relative">
-      <div class="texture-overlay" aria-hidden="true"></div>
-
       <div class="relative z-10">
         <section id="hero" class="relative min-h-screen flex items-center justify-center overflow-hidden">
           <div id="heroBackground" class="absolute inset-0" aria-hidden="true">
             <img class="hero-background-media" src="./static/bg.jpg" alt="" />
           </div>
 
-          <div
-            class="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_rgba(201,168,76,0.08)_0%,_transparent_70%)]"
-            aria-hidden="true"
-          ></div>
-
-          <div class="relative z-10 text-center px-4 sm:px-6 lg:px-8 max-w-5xl mx-auto -mt-14 sm:mt-0">
-            <h1 class="mb-5 sm:mb-8 leading-tight">
+          <div class="hero-art" aria-label="Dungeon Enigma teaser">
+            <h1 class="hero-logo-frame">
               <img
                 src="./static/logo1.png"
                 alt="Dungeon Enigma"
-                class="mx-auto w-full max-w-[520px] sm:max-w-[680px] lg:max-w-[760px] h-auto"
+                class="hero-logo"
               />
             </h1>
-            <h1 class="mb-5 sm:mb-8 leading-tight text-1xl sm:text-2xl sm:whitespace-nowrap">
-              "Those who name the blood may earn the right to tread the dungeon."
-            </h1>
-            <div class="mb-6 sm:mb-8">
-              <button
-                id="guessTrigger"
-                type="button"
-                class="inline-block cursor-pointer border-0 bg-transparent p-0 transition duration-200 hover:scale-[1.02] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#c9a84c] focus-visible:ring-offset-4 focus-visible:ring-offset-[#05070f]"
-              >
-                <img
-                  src="./static/btn_more.png"
-                  alt="Whisper Your Guess"
-                  class="mx-auto w-[220px] sm:w-[280px] lg:w-[360px] h-auto"
-                />
-              </button>
-            </div>
+            <button
+              id="guessTrigger"
+              type="button"
+              class="hero-guess-trigger transition duration-200 hover:scale-[1.02] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#c9a84c] focus-visible:ring-offset-4 focus-visible:ring-offset-[#05070f]"
+            >
+              <img
+                src="./static/btn_guess.png"
+                alt="Whisper Your Guess"
+                class="hero-guess-image"
+              />
+            </button>
             <img
-              src="./static/txt_slogan.png"
-              alt="First-Person Medieval Extraction Looter RPG"
-              class="mx-auto w-[280px] sm:w-[420px] lg:w-[560px] h-auto opacity-95"
+              src="./static/txt_slogan1.png"
+              alt="Those who name the blood may earn the right to tread the dungeon."
+              class="hero-slogan-one"
+            />
+            <img
+              src="./static/txt_slogan2.png"
+              alt="FIRST-PERSON MEDIEVAL EXTRACTION LOOTER RPG"
+              class="hero-slogan-two"
             />
           </div>
         </section>
-
         <div class="relative w-full flex justify-center">
           <img src="./static/bottom_highlight.png" alt="" aria-hidden="true" class="h-[2px] w-auto" />
         </div>
@@ -497,6 +557,34 @@
           };
         };
 
+        const syncVideoToActivePlayback = (video) => {
+          const activeVideo = heroBackground.querySelector("video");
+
+          if (!activeVideo || activeVideo === video) {
+            return false;
+          }
+
+          const playbackTime = activeVideo.currentTime;
+          const targetDuration = video.duration;
+
+          if (!Number.isFinite(playbackTime) || !Number.isFinite(targetDuration) || targetDuration <= 0) {
+            return false;
+          }
+
+          const targetTime = playbackTime % targetDuration;
+
+          if (Math.abs(video.currentTime - targetTime) < 0.05) {
+            return false;
+          }
+
+          try {
+            video.currentTime = Math.min(targetTime, Math.max(targetDuration - 0.05, 0));
+            return true;
+          } catch {
+            return false;
+          }
+        };
+
         const replaceBackgroundWithVideo = ({ key, objectUrl }) => {
           if (key === "standard" && highResolutionDownloaded) {
             URL.revokeObjectURL(objectUrl);
@@ -521,8 +609,16 @@
           video.setAttribute("aria-hidden", "true");
 
           let isSettled = false;
+          let syncAttempts = 0;
           const settle = () => {
             if (isSettled) {
+              return;
+            }
+
+            if (key === "high" && syncAttempts < 3 && syncVideoToActivePlayback(video)) {
+              syncAttempts += 1;
+              video.addEventListener("seeked", settle, { once: true });
+              window.setTimeout(settle, 500);
               return;
             }
 
@@ -548,7 +644,7 @@
             }
           };
 
-          video.addEventListener("loadeddata", settle, { once: true });
+          video.addEventListener("canplay", settle, { once: true });
           video.addEventListener(
             "error",
             () => {
