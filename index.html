@@ -4,6 +4,100 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>WE ARE BACK!</title>
+    <link rel="preload" href="./static/Grim%20Hallway.mp3" as="audio" type="audio/mpeg" fetchpriority="high" />
+    <script>
+      (() => {
+        const ambientAudio = new Audio("./static/Grim%20Hallway.mp3");
+        const retryEvents = ["pointerdown", "click", "keydown", "touchstart"];
+        let gestureListenersBound = false;
+        let hasResolvedAudioStart = false;
+        let resolveAmbientAudioStarted = () => {};
+
+        const ambientAudioStarted = new Promise((resolve) => {
+          resolveAmbientAudioStarted = resolve;
+        });
+
+        const resolveAudioStart = () => {
+          if (hasResolvedAudioStart) {
+            return;
+          }
+
+          hasResolvedAudioStart = true;
+          resolveAmbientAudioStarted();
+        };
+
+        const removeGestureListeners = () => {
+          gestureListenersBound = false;
+          retryEvents.forEach((eventName) => {
+            window.removeEventListener(eventName, retryAmbientAudio);
+          });
+        };
+
+        const bindGestureListeners = () => {
+          if (gestureListenersBound) {
+            return;
+          }
+
+          gestureListenersBound = true;
+          retryEvents.forEach((eventName) => {
+            window.addEventListener(eventName, retryAmbientAudio);
+          });
+        };
+
+        const playAmbientAudio = () => {
+          ambientAudio.loop = true;
+          ambientAudio.preload = "auto";
+          ambientAudio.autoplay = true;
+          ambientAudio.muted = false;
+          ambientAudio.volume = 1;
+
+          if (ambientAudio.networkState === HTMLMediaElement.NETWORK_EMPTY) {
+            ambientAudio.load();
+          }
+
+          const playPromise = ambientAudio.play();
+
+          if (!playPromise) {
+            removeGestureListeners();
+            resolveAudioStart();
+            return;
+          }
+
+          playPromise
+            .then(() => {
+              removeGestureListeners();
+              resolveAudioStart();
+            })
+            .catch(bindGestureListeners);
+        };
+
+        function retryAmbientAudio() {
+          playAmbientAudio();
+        }
+
+        ambientAudio.id = "ambientAudio";
+        ambientAudio.addEventListener("playing", resolveAudioStart);
+        ambientAudio.addEventListener("timeupdate", () => {
+          if (ambientAudio.currentTime > 0) {
+            resolveAudioStart();
+          }
+        });
+
+        window.mithrilAmbientAudio = ambientAudio;
+        window.mithrilAmbientAudioStarted = ambientAudioStarted;
+        window.startMithrilAmbientAudio = playAmbientAudio;
+        playAmbientAudio();
+        window.addEventListener("load", playAmbientAudio, { once: true });
+        window.addEventListener("pageshow", playAmbientAudio);
+        document.addEventListener(
+          "DOMContentLoaded",
+          () => {
+            document.body.prepend(ambientAudio);
+          },
+          { once: true },
+        );
+      })();
+    </script>
     <script>
       (() => {
         const documentElement = document.documentElement;
@@ -132,7 +226,7 @@
         min-height: 100vh;
         margin: 0;
         line-height: 1.6;
-        letter-spacing: 0.02em;
+        letter-spacing: 0;
       }
       h1,
       h2,
@@ -141,7 +235,7 @@
       h5,
       h6 {
         font-family: var(--site-font-heading);
-        letter-spacing: 0.05em;
+        letter-spacing: 0;
       }
 
       span[class*="tag_bg.png"] {
@@ -151,7 +245,7 @@
 
     </style>
     <style>
-      #guessTrigger {
+      #subscribeTrigger {
         border: 0;
         background: transparent;
         padding: 0;
@@ -169,17 +263,39 @@
         inset: 0;
       }
 
+      #heroBackground::after {
+        position: absolute;
+        inset: 0;
+        content: "";
+        background:
+          radial-gradient(circle at 50% 38%, rgba(45, 40, 34, 0.16), transparent 36%),
+          linear-gradient(180deg, rgba(1, 2, 6, 0.7), rgba(1, 2, 6, 0.88));
+        opacity: 1;
+        pointer-events: none;
+        transition: opacity 3200ms ease;
+      }
+
+      .is-background-restoring #heroBackground::after {
+        opacity: 0;
+      }
+
       .hero-background-media {
         position: absolute;
         inset: 0;
         width: 100%;
         height: 100%;
         object-fit: cover;
+        filter: brightness(0.42) saturate(0.82);
+        transition: filter 3200ms ease;
+      }
+
+      .is-background-restoring .hero-background-media {
+        filter: brightness(1) saturate(1);
       }
 
       .hero-art {
         position: absolute;
-        top: 26.574vh;
+        top: 24vh;
         left: 50vw;
         z-index: 10;
         display: flex;
@@ -188,6 +304,19 @@
         flex-direction: column;
         align-items: center;
         pointer-events: none;
+      }
+
+      .final-content {
+        opacity: 0;
+        transform: translate(-50%, 18px);
+        transition:
+          opacity 1400ms ease,
+          transform 1400ms ease;
+      }
+
+      .is-final-visible .final-content {
+        opacity: 1;
+        transform: translate(-50%, 0);
       }
 
       .hero-art img {
@@ -205,27 +334,92 @@
         width: min(50.46875vw, 1938px);
       }
 
-      .hero-guess-trigger {
+      .hero-subscribe-trigger {
         display: block;
         line-height: 0;
+        margin-top: min(2.0833333vw, 80px);
         transform: translateX(min(0.0260417vw, 1px));
         pointer-events: auto;
       }
 
-      .hero-guess-image {
+      .hero-subscribe-image {
         width: min(25.9375vw, 996px);
-      }
-
-      .hero-slogan-one {
-        width: min(50.0260417vw, 1921px);
-        margin-top: min(1.1458333vw, 44px);
-        transform: translateX(min(0.2213542vw, 8.5px));
       }
 
       .hero-slogan-two {
         width: min(42.8125vw, 1644px);
-        margin-top: min(1.0416667vw, 40px);
+        margin-top: min(1.6666667vw, 64px);
+        filter: brightness(1.35) contrast(1.08) drop-shadow(0 2px 10px rgba(0, 0, 0, 0.82));
         transform: translateX(max(-0.1822917vw, -7px));
+      }
+
+      .intro-stage {
+        position: absolute;
+        inset: 0;
+        z-index: 20;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 10vh 24px;
+        pointer-events: none;
+        transition: opacity 1200ms ease;
+      }
+
+      .is-intro-finished .intro-stage {
+        opacity: 0;
+      }
+
+      .intro-viewport {
+        position: relative;
+        width: min(760px, 86vw);
+        height: min(62vh, 580px);
+        overflow: hidden;
+        mask-image: linear-gradient(180deg, transparent, #000 14%, #000 82%, transparent);
+      }
+
+      .intro-track {
+        --intro-hold-translate: -112%;
+        display: flex;
+        min-height: 100%;
+        flex-direction: column;
+        justify-content: flex-start;
+        gap: 12px;
+        color: rgba(238, 233, 224, 0.88);
+        font-family: var(--site-font-heading);
+        font-size: 22px;
+        font-weight: 400;
+        line-height: 1.68;
+        letter-spacing: 0;
+        text-align: center;
+        text-shadow: 0 2px 22px rgba(0, 0, 0, 0.95);
+        transform: translateY(44vh);
+      }
+
+      .is-intro-ready .intro-track {
+        animation: introScroll 70s linear 800ms forwards;
+      }
+
+      .intro-track p {
+        margin: 0;
+      }
+
+      .intro-finale {
+        color: #fff8ed;
+        font-size: 34px;
+        font-weight: 600;
+        text-shadow:
+          0 2px 18px rgba(0, 0, 0, 0.95),
+          0 0 18px rgba(238, 217, 167, 0.22);
+      }
+
+      @keyframes introScroll {
+        from {
+          transform: translateY(44vh);
+        }
+
+        to {
+          transform: translateY(var(--intro-hold-translate));
+        }
       }
 
       dialog::backdrop {
@@ -233,8 +427,7 @@
         backdrop-filter: blur(4px);
       }
 
-      #guessDialog,
-      #guessResultDialog {
+      #subscribeDialog {
         position: fixed;
         top: 50%;
         left: 50%;
@@ -249,29 +442,18 @@
         -webkit-overflow-scrolling: touch;
       }
 
-      #guessForm {
+      #subscribeForm {
         display: flex;
         flex-direction: column;
-        gap: 20px;
+        gap: 16px;
         padding: 28px 24px;
       }
 
-      #guessDialog form {
+      #subscribeDialog form {
         box-sizing: border-box;
       }
 
-      #guessDialog h2,
-      #guessResultDialog h2 {
-        margin: 0;
-        color: #e8e6e3;
-        font-family: var(--site-font-heading);
-        font-size: 24px;
-        line-height: 1.25;
-        letter-spacing: 0;
-        text-align: center;
-      }
-
-      #guessDialog label {
+      #subscribeDialog label {
         display: block;
         color: #d7d0c8;
         font-size: 14px;
@@ -279,11 +461,10 @@
         text-align: left;
       }
 
-      #guessDialog input {
+      #subscribeDialog input {
         display: block;
         width: 100%;
         box-sizing: border-box;
-        margin-top: 8px;
         border: 1px solid rgba(123, 107, 87, 0.7);
         border-radius: 4px;
         background: #15151d;
@@ -294,13 +475,12 @@
         outline: none;
       }
 
-      #guessDialog input:focus {
+      #subscribeDialog input:focus {
         border-color: #c9a84c;
         box-shadow: 0 0 0 1px #c9a84c;
       }
 
-      #guessDialog button[type="submit"],
-      #guessResultConfirm {
+      #subscribeDialog button[type="submit"] {
         width: 100%;
         min-height: 48px;
         border: 1px solid rgba(201, 168, 76, 0.7);
@@ -313,76 +493,91 @@
         text-transform: uppercase;
       }
 
-      #guessDialog button[type="submit"]:hover,
-      #guessDialog button[type="submit"]:focus-visible,
-      #guessResultConfirm:hover,
-      #guessResultConfirm:focus-visible {
+      #subscribeDialog button[type="submit"]:hover,
+      #subscribeDialog button[type="submit"]:focus-visible {
         background: #8b7355;
       }
 
-      #guessResultPanel {
-        display: flex;
-        flex-direction: column;
-        gap: 18px;
-        padding: 28px 24px;
-        text-align: center;
-      }
-
-      #guessResultMessage {
-        margin: 0;
-        color: #d7d0c8;
-        font-size: 15px;
-        line-height: 1.7;
-        letter-spacing: 0;
-      }
-
-      #guessResultConfirm {
-        min-height: 48px;
-        cursor: pointer;
-        outline: none;
-      }
-
-      #guessResultConfirm:focus-visible {
-        box-shadow: 0 0 0 2px #c9a84c;
+      .sr-only {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        margin: -1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        white-space: nowrap;
+        border: 0;
       }
 
       @media (max-width: 480px) {
         .hero-art {
-          top: 20vh;
+          top: 21vh;
         }
 
         .hero-logo {
           width: 92vw;
         }
 
-        .hero-guess-trigger {
+        .hero-subscribe-trigger {
+          margin-top: 7vw;
           transform: none;
         }
 
-        .hero-guess-image {
-          width: 48vw;
-        }
-
-        .hero-slogan-one {
-          width: 90vw;
-          margin-top: 5vw;
-          transform: none;
+        .hero-subscribe-image {
+          width: 54vw;
         }
 
         .hero-slogan-two {
-          width: 76vw;
-          margin-top: 4vw;
+          width: 82vw;
+          margin-top: 7vw;
           transform: none;
         }
 
-        #guessDialog,
-        #guessResultDialog {
+        .intro-stage {
+          padding: 8vh 18px;
+        }
+
+        .intro-viewport {
+          width: 88vw;
+          height: 66vh;
+        }
+
+        .intro-track {
+          gap: 10px;
+          font-size: 16px;
+          line-height: 1.56;
+        }
+
+        .is-intro-ready .intro-track {
+          animation-duration: 78s;
+        }
+
+        .intro-finale {
+          font-size: 24px;
+        }
+
+        #subscribeDialog {
           width: calc(100vw - 32px);
           max-height: calc(100dvh - 32px);
         }
 
-        #guessForm {
+        #subscribeForm {
           padding: 24px 18px;
+        }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        .is-intro-ready .intro-track {
+          animation-duration: 1ms;
+          animation-delay: 400ms;
+        }
+
+        .final-content,
+        .intro-stage,
+        #heroBackground::after,
+        .hero-background-media {
+          transition-duration: 1ms;
         }
       }
     </style>
@@ -392,10 +587,52 @@
       <div class="relative z-10">
         <section id="hero" class="relative min-h-screen flex items-center justify-center overflow-hidden">
           <div id="heroBackground" class="absolute inset-0" aria-hidden="true">
-            <img class="hero-background-media" src="./static/bg.jpg" alt="" />
+            <video
+              class="hero-background-media"
+              src="./static/bg.mp4"
+              poster="./static/bg.jpg"
+              autoplay
+              muted
+              loop
+              playsinline
+              preload="auto"
+            ></video>
           </div>
 
-          <div class="hero-art" aria-label="Dungeon Enigma teaser">
+          <div class="intro-stage" aria-label="Mithril Studio returns">
+            <div class="intro-viewport" aria-hidden="true">
+              <div id="introTrack" class="intro-track">
+                <p>Some worlds do not return.</p>
+                <p>They do not retrace their own steps.</p>
+                <p>They wait in the dark.</p>
+                <p>They gather shape again.</p>
+                <p>Old echoes fade into new stone.</p>
+                <p>Broken rules become cleaner paths.</p>
+                <p>Familiar tension finds a sharper edge.</p>
+                <p>A new world is opening.</p>
+                <p>It is built for the moment.</p>
+                <p>Before the door gives way.</p>
+                <p>For the weight of what you carry.</p>
+                <p>For the choice to press deeper.</p>
+                <p>Or make it out alive.</p>
+                <p>It is a world of risk,</p>
+                <p>consequence,</p>
+                <p>hidden histories,</p>
+                <p>and light.</p>
+                <p>Found only after you have earned it.</p>
+                <p>If you were with us before,</p>
+                <p>you may recognize the feeling.</p>
+                <p>Before you recognize the place.</p>
+                <p>If this is your first time.</p>
+                <p>At the threshold,</p>
+                <p>welcome.</p>
+                <p>More will be revealed soon.</p>
+                <p class="intro-finale">We are back!</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="hero-art final-content" aria-label="Dungeon Enigma teaser" aria-hidden="true">
             <h1 class="hero-logo-frame">
               <img
                 src="./static/logo1.png"
@@ -403,27 +640,23 @@
                 class="hero-logo"
               />
             </h1>
-            <button
-              id="guessTrigger"
-              type="button"
-              class="hero-guess-trigger transition duration-200 hover:scale-[1.02] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#c9a84c] focus-visible:ring-offset-4 focus-visible:ring-offset-[#05070f]"
-            >
-              <img
-                src="./static/btn_guess.png"
-                alt="Whisper Your Guess"
-                class="hero-guess-image"
-              />
-            </button>
-            <img
-              src="./static/txt_slogan1.png"
-              alt="Those who name the blood may earn the right to tread the dungeon."
-              class="hero-slogan-one"
-            />
             <img
               src="./static/txt_slogan2.png"
               alt="FIRST-PERSON MEDIEVAL EXTRACTION LOOTER RPG"
               class="hero-slogan-two"
             />
+            <button
+              id="subscribeTrigger"
+              type="button"
+              class="hero-subscribe-trigger transition duration-200 hover:scale-[1.02] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#c9a84c] focus-visible:ring-offset-4 focus-visible:ring-offset-[#05070f]"
+              disabled
+            >
+              <img
+                src="./static/btn_subscribe.png"
+                alt="Subscribe"
+                class="hero-subscribe-image"
+              />
+            </button>
           </div>
         </section>
         <div class="relative w-full flex justify-center">
@@ -433,112 +666,132 @@
     </div>
 
     <dialog
-      id="guessDialog"
+      id="subscribeDialog"
       tabindex="-1"
       class="rounded-md border border-[#7b6b57]/60 bg-[#0b0c12]/95 p-0 text-primary-text shadow-2xl shadow-black/60"
-      aria-labelledby="guessDialogTitle"
+      aria-label="Subscribe"
     >
-      <form id="guessForm" class="space-y-5 px-6 py-7 sm:px-8" novalidate>
-        <div class="text-center">
-          <h2 id="guessDialogTitle" class="text-xl sm:text-2xl text-[#e8e6e3]">Whisper Your Guess</h2>
-        </div>
-
+      <form id="subscribeForm" class="space-y-5 px-6 py-7 sm:px-8" novalidate>
         <label class="block text-left text-sm text-[#d7d0c8]">
-          Guess Name
+          <span class="sr-only">Email Address</span>
           <input
-            id="guessName"
-            name="guessName"
-            type="text"
-            required
-            autocomplete="off"
-            class="mt-2 block w-full rounded border border-[#7b6b57]/70 bg-[#15151d] px-3 py-3 text-base text-[#f4efe8] outline-none transition placeholder:text-[#8b8174] focus:border-[#c9a84c] focus:ring-1 focus:ring-[#c9a84c]"
-            placeholder="Enter the name"
-          />
-        </label>
-
-        <label class="block text-left text-sm text-[#d7d0c8]">
-          Email Address
-          <input
+            id="subscribeEmail"
             name="email"
             type="email"
             required
             autocomplete="email"
-            class="mt-2 block w-full rounded border border-[#7b6b57]/70 bg-[#15151d] px-3 py-3 text-base text-[#f4efe8] outline-none transition placeholder:text-[#8b8174] focus:border-[#c9a84c] focus:ring-1 focus:ring-[#c9a84c]"
-            placeholder="you@example.com"
+            class="block w-full rounded border border-[#7b6b57]/70 bg-[#15151d] px-3 py-3 text-base text-[#f4efe8] outline-none transition placeholder:text-[#8b8174] focus:border-[#c9a84c] focus:ring-1 focus:ring-[#c9a84c]"
+            placeholder="Email Address"
           />
         </label>
 
         <button
-          id="guessSubmitButton"
+          id="subscribeSubmitButton"
           type="submit"
           class="w-full rounded border border-[#c9a84c]/70 bg-[#7b6b57] px-4 py-3 font-heading text-sm uppercase text-[#fff9ef] transition hover:bg-[#8b7355] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#c9a84c] disabled:cursor-not-allowed disabled:opacity-60"
         >
-          Submit
+          Subscribe
         </button>
-        <p id="guessFormStatus" class="min-h-[1.25rem] text-center text-sm text-[#c9a84c]" aria-live="polite"></p>
       </form>
     </dialog>
 
-    <dialog
-      id="guessResultDialog"
-      tabindex="-1"
-      class="rounded-md border border-[#7b6b57]/60 bg-[#0b0c12]/95 p-0 text-primary-text shadow-2xl shadow-black/60"
-      aria-labelledby="guessResultTitle"
-      aria-describedby="guessResultMessage"
-    >
-      <div id="guessResultPanel">
-        <h2 id="guessResultTitle">Your Whisper Is Sealed</h2>
-        <p id="guessResultMessage"></p>
-        <button id="guessResultConfirm" type="button">Confirm</button>
-      </div>
-    </dialog>
-
     <script>
-      const GUESS_SUBMISSION_ENDPOINT = "https://guess-name.mithrilstudio.com/api/guesses";
-      const guessTrigger = document.getElementById("guessTrigger");
-      const guessDialog = document.getElementById("guessDialog");
-      const guessForm = document.getElementById("guessForm");
-      const guessName = document.getElementById("guessName");
-      const guessSubmitButton = document.getElementById("guessSubmitButton");
-      const guessFormStatus = document.getElementById("guessFormStatus");
-      const guessResultDialog = document.getElementById("guessResultDialog");
-      const guessResultTitle = document.getElementById("guessResultTitle");
-      const guessResultMessage = document.getElementById("guessResultMessage");
-      const guessResultConfirm = document.getElementById("guessResultConfirm");
+      const subscribeTrigger = document.getElementById("subscribeTrigger");
+      const subscribeDialog = document.getElementById("subscribeDialog");
+      const subscribeForm = document.getElementById("subscribeForm");
+      const subscribeEmail = document.getElementById("subscribeEmail");
+      const introTrack = document.getElementById("introTrack");
+      const finalContent = document.querySelector(".final-content");
       const heroBackground = document.getElementById("heroBackground");
+      const BACKGROUND_RESTORE_DURATION_MS = 3200;
+      const INTRO_FINALE_HOLD_MS = 2000;
+      const INTRO_FALLBACK_MS = 100000;
+      let introFallbackTimer = null;
 
-      const setGuessFormStatus = (message = "", color = "#c9a84c") => {
-        guessFormStatus.textContent = message;
-        guessFormStatus.style.color = color;
-      };
-
-      const setGuessFormSubmitting = (isSubmitting) => {
-        guessSubmitButton.disabled = isSubmitting;
-        guessSubmitButton.textContent = isSubmitting ? "Submitting..." : "Submit";
-      };
-
-      const showGuessResult = ({ title, message }) => {
-        guessResultTitle.textContent = title;
-        guessResultMessage.textContent = message;
-
-        if (guessDialog.open) {
-          guessDialog.close();
+      const revealFinalContent = () => {
+        if (document.body.classList.contains("is-final-visible")) {
+          return;
         }
 
-        guessResultDialog.showModal();
+        document.body.classList.add("is-final-visible");
+        subscribeTrigger.disabled = false;
+        finalContent.setAttribute("aria-hidden", "false");
+      };
+
+      const syncIntroFinalePosition = () => {
+        const introViewport = document.querySelector(".intro-viewport");
+        const introFinale = document.querySelector(".intro-finale");
+
+        if (!introViewport || !introFinale) {
+          return;
+        }
+
+        const finaleCenter = introFinale.offsetTop + introFinale.offsetHeight / 2;
+        const targetY = introViewport.clientHeight / 2 - finaleCenter;
+        introTrack.style.setProperty("--intro-hold-translate", `${targetY}px`);
+      };
+
+      const startBackgroundRestoration = () => {
+        if (document.body.classList.contains("is-intro-finished")) {
+          return;
+        }
+
+        document.body.classList.add("is-intro-finished");
         requestAnimationFrame(() => {
-          guessResultConfirm.focus({ preventScroll: true });
+          document.body.classList.add("is-background-restoring");
         });
+        window.setTimeout(revealFinalContent, BACKGROUND_RESTORE_DURATION_MS + 160);
+      };
+
+      const startIntroFinaleHold = () => {
+        if (document.body.classList.contains("is-intro-holding")) {
+          return;
+        }
+
+        if (introFallbackTimer) {
+          window.clearTimeout(introFallbackTimer);
+          introFallbackTimer = null;
+        }
+
+        document.body.classList.add("is-intro-holding");
+        window.setTimeout(startBackgroundRestoration, INTRO_FINALE_HOLD_MS);
+      };
+
+      const startIntroSequence = () => {
+        if (document.body.classList.contains("is-intro-ready")) {
+          return;
+        }
+
+        syncIntroFinalePosition();
+        document.body.classList.add("is-intro-ready");
+        introFallbackTimer = window.setTimeout(startIntroFinaleHold, INTRO_FALLBACK_MS);
+      };
+
+      const startCurrentBackgroundVideo = () => {
+        const activeVideo = heroBackground?.querySelector("video");
+
+        if (!activeVideo) {
+          return;
+        }
+
+        activeVideo.defaultMuted = true;
+        activeVideo.muted = true;
+        activeVideo.loop = true;
+        activeVideo.playsInline = true;
+
+        const playPromise = activeVideo.play();
+        if (playPromise) {
+          playPromise.catch(() => {});
+        }
       };
 
       (() => {
         const backgroundVideoSources = {
-          standard: "./static/bg.mp4",
           high: "./static/bg_4k.mp4",
         };
-        let activeBackgroundKey = "poster";
+        let activeBackgroundKey = "standard";
         let activeObjectUrl = null;
-        let highResolutionDownloaded = false;
+        let backgroundDownloadsStarted = false;
 
         if (!heroBackground || !window.fetch || !window.URL || !URL.createObjectURL) {
           return;
@@ -586,11 +839,6 @@
         };
 
         const replaceBackgroundWithVideo = ({ key, objectUrl }) => {
-          if (key === "standard" && highResolutionDownloaded) {
-            URL.revokeObjectURL(objectUrl);
-            return;
-          }
-
           if (activeBackgroundKey === "high" && key !== "high") {
             URL.revokeObjectURL(objectUrl);
             return;
@@ -624,11 +872,6 @@
 
             isSettled = true;
 
-            if (key === "standard" && highResolutionDownloaded) {
-              URL.revokeObjectURL(objectUrl);
-              return;
-            }
-
             const previousObjectUrl = activeObjectUrl;
             heroBackground.replaceChildren(video);
             activeBackgroundKey = key;
@@ -658,103 +901,70 @@
         };
 
         const startBackgroundDownloads = () => {
-          downloadVideo("standard", backgroundVideoSources.standard)
-            .then((video) => {
-              if (highResolutionDownloaded) {
-                URL.revokeObjectURL(video.objectUrl);
-                return;
-              }
-
-              replaceBackgroundWithVideo(video);
-            })
-            .catch(() => {});
-
-          downloadVideo("high", backgroundVideoSources.high)
-            .then((video) => {
-              highResolutionDownloaded = true;
-              replaceBackgroundWithVideo(video);
-            })
-            .catch(() => {});
-        };
-
-        const queueBackgroundDownloads = () => {
-          if ("requestIdleCallback" in window) {
-            window.requestIdleCallback(startBackgroundDownloads, { timeout: 1500 });
+          if (backgroundDownloadsStarted) {
             return;
           }
 
-          window.setTimeout(startBackgroundDownloads, 250);
+          backgroundDownloadsStarted = true;
+
+          downloadVideo("high", backgroundVideoSources.high)
+            .then((video) => {
+              replaceBackgroundWithVideo(video);
+            })
+            .catch(() => {});
         };
 
-        if (document.readyState === "complete") {
-          queueBackgroundDownloads();
-        } else {
-          window.addEventListener("load", queueBackgroundDownloads, { once: true });
-        }
+        window.startMithrilBackgroundVideo = startBackgroundDownloads;
       })();
 
-      guessTrigger.addEventListener("click", () => {
-        setGuessFormStatus();
-        guessDialog.showModal();
+      startCurrentBackgroundVideo();
+      window.startMithrilBackgroundVideo?.();
+      window.startMithrilAmbientAudio?.();
+      window.addEventListener("resize", () => {
+        if (!document.body.classList.contains("is-intro-ready")) {
+          syncIntroFinalePosition();
+        }
+      });
+      const fontReady = Promise.race([
+        document.fonts ? document.fonts.ready.catch(() => {}) : Promise.resolve(),
+        new Promise((resolve) => window.setTimeout(resolve, 1200)),
+      ]);
+      const ambientReady = Promise.race([
+        window.mithrilAmbientAudioStarted || Promise.resolve(),
+        new Promise((resolve) => window.setTimeout(resolve, 5000)),
+      ]);
+
+      Promise.all([fontReady, ambientReady]).then(() => {
+        requestAnimationFrame(startIntroSequence);
+      });
+      introTrack.addEventListener("animationend", startIntroFinaleHold, { once: true });
+
+      subscribeTrigger.addEventListener("click", () => {
+        subscribeDialog.showModal();
 
         if (window.matchMedia("(pointer: coarse)").matches) {
-          guessDialog.focus({ preventScroll: true });
+          subscribeDialog.focus({ preventScroll: true });
         } else {
           requestAnimationFrame(() => {
-            guessName.focus({ preventScroll: true });
+            subscribeEmail.focus({ preventScroll: true });
           });
         }
       });
 
-      guessForm.addEventListener("submit", async (event) => {
+      subscribeForm.addEventListener("submit", (event) => {
         event.preventDefault();
 
-        if (!guessForm.checkValidity()) {
-          guessForm.reportValidity();
+        if (!subscribeForm.checkValidity()) {
+          subscribeForm.reportValidity();
           return;
         }
 
-        const formData = new FormData(guessForm);
-
-        setGuessFormSubmitting(true);
-        setGuessFormStatus("Submitting...");
-
-        try {
-          const response = await fetch(GUESS_SUBMISSION_ENDPOINT, {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              guessName: formData.get("guessName"),
-              email: formData.get("email"),
-            }),
-          });
-
-          if (!response.ok) {
-            throw new Error("Unable to submit guess.");
-          }
-
-          guessForm.reset();
-          setGuessFormStatus();
-          showGuessResult({
-            title: "Congratulations, Your Guess Is In",
-            message:
-              "Your whisper has been received. The answer will be revealed to everyone together in a future announcement.",
-          });
-        } catch {
-          setGuessFormStatus();
-          showGuessResult({
-            title: "The Whisper Did Not Reach Us",
-            message: "Something interrupted your submission. Please try again in a moment.",
-          });
-        } finally {
-          setGuessFormSubmitting(false);
-        }
+        subscribeDialog.close();
+        subscribeForm.reset();
       });
 
-      guessDialog.addEventListener("click", (event) => {
-        const dialogBounds = guessDialog.getBoundingClientRect();
+      subscribeDialog.addEventListener("click", (event) => {
+        const dialogBounds = subscribeDialog.getBoundingClientRect();
         const isBackdropClick =
           event.clientX < dialogBounds.left ||
           event.clientX > dialogBounds.right ||
@@ -762,12 +972,8 @@
           event.clientY > dialogBounds.bottom;
 
         if (isBackdropClick) {
-          guessDialog.close();
+          subscribeDialog.close();
         }
-      });
-
-      guessResultConfirm.addEventListener("click", () => {
-        guessResultDialog.close();
       });
     </script>
   </body>
