@@ -4,18 +4,36 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>WE ARE BACK!</title>
-    <link rel="preload" href="./static/Black_Banner_March.aac" as="audio" type="audio/mpeg" fetchpriority="high" />
+    <link rel="preload" href="./static/Black_Banner_March.aac" as="audio" type="audio/aac" fetchpriority="high" />
     <script>
       (() => {
         const ambientAudio = new Audio("./static/Black_Banner_March.aac");
         const retryEvents = ["pointerdown", "click", "keydown", "touchstart"];
+        const AMBIENT_AUDIO_SYNC_TOLERANCE_SECONDS = 0.18;
         let gestureListenersBound = false;
+        let pendingAmbientPlayAttempt = null;
+        let pendingTimelineSync = false;
+        let hasResolvedAudioPrepared = false;
         let hasResolvedAudioStart = false;
+        let resolveAmbientAudioPrepared = () => {};
         let resolveAmbientAudioStarted = () => {};
+
+        const ambientAudioPrepared = new Promise((resolve) => {
+          resolveAmbientAudioPrepared = resolve;
+        });
 
         const ambientAudioStarted = new Promise((resolve) => {
           resolveAmbientAudioStarted = resolve;
         });
+
+        const resolveAudioPrepared = () => {
+          if (hasResolvedAudioPrepared) {
+            return;
+          }
+
+          hasResolvedAudioPrepared = true;
+          resolveAmbientAudioPrepared();
+        };
 
         const resolveAudioStart = () => {
           if (hasResolvedAudioStart) {
@@ -24,6 +42,105 @@
 
           hasResolvedAudioStart = true;
           resolveAmbientAudioStarted();
+        };
+
+        const getIntroScrollStartTimeMs = () => {
+          return typeof window.mithrilIntroScrollStartTimeMs === "number"
+            ? window.mithrilIntroScrollStartTimeMs
+            : null;
+        };
+
+        const getTimelineElapsedSeconds = (nowMs = performance.now()) => {
+          const scrollStartTimeMs = getIntroScrollStartTimeMs();
+
+          if (scrollStartTimeMs === null) {
+            return null;
+          }
+
+          return Math.max(0, (nowMs - scrollStartTimeMs) / 1000);
+        };
+
+        const getWrappedAudioTime = (elapsedSeconds) => {
+          const duration = ambientAudio.duration;
+
+          if (!Number.isFinite(duration) || duration <= 0) {
+            return Math.max(0, elapsedSeconds);
+          }
+
+          return elapsedSeconds % duration;
+        };
+
+        const getAudioTimeDifference = (currentTime, targetTime) => {
+          const duration = ambientAudio.duration;
+
+          if (!Number.isFinite(duration) || duration <= 0) {
+            return Math.abs(currentTime - targetTime);
+          }
+
+          const difference = Math.abs(currentTime - targetTime);
+          return Math.min(difference, Math.abs(duration - difference));
+        };
+
+        const syncAmbientAudioToTimeline = ({ force = false, nowMs = performance.now() } = {}) => {
+          const elapsedSeconds = getTimelineElapsedSeconds(nowMs);
+
+          if (elapsedSeconds === null || ambientAudio.readyState < HTMLMediaElement.HAVE_METADATA) {
+            return false;
+          }
+
+          const targetTime = getWrappedAudioTime(elapsedSeconds);
+          const timeDifference = getAudioTimeDifference(ambientAudio.currentTime, targetTime);
+
+          if (!force && timeDifference <= AMBIENT_AUDIO_SYNC_TOLERANCE_SECONDS) {
+            return false;
+          }
+
+          try {
+            ambientAudio.currentTime = targetTime;
+            return true;
+          } catch {
+            return false;
+          }
+        };
+
+        const queueTimelineSync = () => {
+          if (getIntroScrollStartTimeMs() === null) {
+            return false;
+          }
+
+          pendingTimelineSync = true;
+          return true;
+        };
+
+        const syncAmbientAudioToPendingTimeline = () => {
+          if (!pendingTimelineSync) {
+            return false;
+          }
+
+          const didSync = syncAmbientAudioToTimeline({ force: true });
+
+          if (didSync) {
+            pendingTimelineSync = false;
+          }
+
+          return didSync;
+        };
+
+        const configureAmbientAudio = () => {
+          ambientAudio.id = "ambientAudio";
+          ambientAudio.loop = true;
+          ambientAudio.preload = "auto";
+          ambientAudio.autoplay = false;
+          ambientAudio.muted = false;
+          ambientAudio.volume = 1;
+        };
+
+        const loadAmbientAudio = () => {
+          configureAmbientAudio();
+
+          if (ambientAudio.networkState === HTMLMediaElement.NETWORK_EMPTY) {
+            ambientAudio.load();
+          }
         };
 
         const removeGestureListeners = () => {
@@ -44,12 +161,27 @@
           });
         };
 
-        const playAmbientAudio = () => {
-          ambientAudio.loop = true;
-          ambientAudio.preload = "auto";
-          ambientAudio.autoplay = true;
-          ambientAudio.muted = false;
-          ambientAudio.volume = 1;
+        const playAmbientAudio = ({ forceSync = false } = {}) => {
+          configureAmbientAudio();
+
+          if (window.mithrilAmbientUserPaused) {
+            return Promise.resolve(false);
+          }
+
+          if (forceSync) {
+            queueTimelineSync();
+          }
+
+          if (!ambientAudio.paused && !pendingAmbientPlayAttempt) {
+            syncAmbientAudioToPendingTimeline();
+            resolveAudioStart();
+            removeGestureListeners();
+            return Promise.resolve(true);
+          }
+
+          if (pendingAmbientPlayAttempt) {
+            return pendingAmbientPlayAttempt;
+          }
 
           if (ambientAudio.networkState === HTMLMediaElement.NETWORK_EMPTY) {
             ambientAudio.load();
@@ -58,25 +190,54 @@
           const playPromise = ambientAudio.play();
 
           if (!playPromise) {
-            removeGestureListeners();
+            syncAmbientAudioToPendingTimeline();
             resolveAudioStart();
-            return;
+            removeGestureListeners();
+            return Promise.resolve(true);
           }
 
-          playPromise
+          pendingAmbientPlayAttempt = playPromise
             .then(() => {
-              removeGestureListeners();
+              syncAmbientAudioToPendingTimeline();
               resolveAudioStart();
+              removeGestureListeners();
+              return true;
             })
-            .catch(bindGestureListeners);
+            .catch(() => {
+              if (!window.mithrilAmbientUserPaused) {
+                bindGestureListeners();
+              }
+
+              return false;
+            })
+            .finally(() => {
+              pendingAmbientPlayAttempt = null;
+            });
+
+          return pendingAmbientPlayAttempt;
         };
 
         function retryAmbientAudio() {
-          playAmbientAudio();
+          if (window.mithrilAmbientUserPaused) {
+            return;
+          }
+
+          if (getIntroScrollStartTimeMs() === null) {
+            return;
+          }
+
+          playAmbientAudio({ forceSync: true });
         }
 
-        ambientAudio.id = "ambientAudio";
-        ambientAudio.addEventListener("playing", resolveAudioStart);
+        ambientAudio.addEventListener("loadedmetadata", () => {
+          resolveAudioPrepared();
+        });
+        ambientAudio.addEventListener("loadeddata", resolveAudioPrepared);
+        ambientAudio.addEventListener("canplay", resolveAudioPrepared);
+        ambientAudio.addEventListener("playing", () => {
+          syncAmbientAudioToPendingTimeline();
+          resolveAudioStart();
+        });
         ambientAudio.addEventListener("timeupdate", () => {
           if (ambientAudio.currentTime > 0) {
             resolveAudioStart();
@@ -84,15 +245,24 @@
         });
 
         window.mithrilAmbientAudio = ambientAudio;
+        window.mithrilAmbientAudioPrepared = ambientAudioPrepared;
         window.mithrilAmbientAudioStarted = ambientAudioStarted;
+        window.prepareMithrilAmbientAudio = loadAmbientAudio;
         window.startMithrilAmbientAudio = playAmbientAudio;
-        playAmbientAudio();
-        window.addEventListener("load", playAmbientAudio, { once: true });
+        window.syncMithrilAmbientAudioToTimeline = syncAmbientAudioToTimeline;
+        loadAmbientAudio();
+        window.addEventListener("load", loadAmbientAudio, { once: true });
         window.addEventListener("pageshow", () => {
           if (window.mithrilAmbientUserPaused) {
             return;
           }
-          playAmbientAudio();
+
+          if (getIntroScrollStartTimeMs() === null) {
+            loadAmbientAudio();
+            return;
+          }
+
+          playAmbientAudio({ forceSync: true });
         });
         document.addEventListener(
           "DOMContentLoaded",
@@ -815,6 +985,7 @@
       const BACKGROUND_RESTORE_DURATION_MS = 3200;
       const INTRO_FINALE_HOLD_MS = 2000;
       const INTRO_FALLBACK_MS = 100000;
+      window.mithrilIntroScrollStartTimeMs = null;
       let introFallbackTimer = null;
 
       const revealFinalContent = () => {
@@ -874,6 +1045,15 @@
         syncIntroFinalePosition();
         document.body.classList.add("is-intro-ready");
         introFallbackTimer = window.setTimeout(startIntroFinaleHold, INTRO_FALLBACK_MS);
+      };
+
+      const registerIntroScrollStart = () => {
+        if (typeof window.mithrilIntroScrollStartTimeMs === "number") {
+          return;
+        }
+
+        window.mithrilIntroScrollStartTimeMs = performance.now();
+        window.startMithrilAmbientAudio?.({ forceSync: true });
       };
 
       const startCurrentBackgroundVideo = () => {
@@ -1028,7 +1208,6 @@
 
       startCurrentBackgroundVideo();
       window.startMithrilBackgroundVideo?.();
-      window.startMithrilAmbientAudio?.();
 
       (() => {
         const audioToggle = document.getElementById("audioToggle");
@@ -1056,7 +1235,7 @@
           if (ambientAudio.paused) {
             window.mithrilAmbientUserPaused = false;
             if (typeof window.startMithrilAmbientAudio === "function") {
-              window.startMithrilAmbientAudio();
+              window.startMithrilAmbientAudio({ forceSync: true });
             } else {
               const playPromise = ambientAudio.play();
               if (playPromise) {
@@ -1085,13 +1264,14 @@
         new Promise((resolve) => window.setTimeout(resolve, 1200)),
       ]);
       const ambientReady = Promise.race([
-        window.mithrilAmbientAudioStarted || Promise.resolve(),
+        window.mithrilAmbientAudioPrepared || Promise.resolve(),
         new Promise((resolve) => window.setTimeout(resolve, 5000)),
       ]);
 
       Promise.all([fontReady, ambientReady]).then(() => {
         requestAnimationFrame(startIntroSequence);
       });
+      introTrack.addEventListener("animationstart", registerIntroScrollStart, { once: true });
       introTrack.addEventListener("animationend", startIntroFinaleHold, { once: true });
 
       subscribeTrigger.addEventListener("click", () => {
