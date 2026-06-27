@@ -9,6 +9,7 @@ import { fileURLToPath } from "node:url";
 const rootDirectory = resolve(fileURLToPath(new URL("../", import.meta.url)));
 const mimeTypes = new Map([
   [".avif", "image/avif"],
+  [".aac", "audio/aac"],
   [".css", "text/css; charset=utf-8"],
   [".gif", "image/gif"],
   [".html", "text/html; charset=utf-8"],
@@ -18,6 +19,7 @@ const mimeTypes = new Map([
   [".js", "text/javascript; charset=utf-8"],
   [".json", "application/json; charset=utf-8"],
   [".mjs", "text/javascript; charset=utf-8"],
+  [".mp3", "audio/mpeg"],
   [".mp4", "video/mp4"],
   [".png", "image/png"],
   [".svg", "image/svg+xml; charset=utf-8"],
