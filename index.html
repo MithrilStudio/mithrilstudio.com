@@ -4,10 +4,10 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>WE ARE BACK!</title>
-    <link rel="preload" href="./static/Grim_Hallway.mp3" as="audio" type="audio/mpeg" fetchpriority="high" />
+    <link rel="preload" href="./static/Black_Banner_March.aac" as="audio" type="audio/mpeg" fetchpriority="high" />
     <script>
       (() => {
-        const ambientAudio = new Audio("./static/Grim_Hallway.mp3");
+        const ambientAudio = new Audio("./static/Black_Banner_March.aac");
         const retryEvents = ["pointerdown", "click", "keydown", "touchstart"];
         let gestureListenersBound = false;
         let hasResolvedAudioStart = false;
@@ -498,6 +498,22 @@
         background: #8b7355;
       }
 
+      .subscribe-status {
+        min-height: 1.25rem;
+        margin: 0;
+        font-size: 14px;
+        line-height: 1.4;
+        text-align: center;
+      }
+
+      .subscribe-status[data-kind="success"] {
+        color: #c9a84c;
+      }
+
+      .subscribe-status[data-kind="error"] {
+        color: #e08585;
+      }
+
       .sr-only {
         position: absolute;
         width: 1px;
@@ -692,6 +708,8 @@
         >
           Subscribe
         </button>
+
+        <p id="subscribeStatus" class="subscribe-status" role="status" aria-live="polite"></p>
       </form>
     </dialog>
 
@@ -700,6 +718,14 @@
       const subscribeDialog = document.getElementById("subscribeDialog");
       const subscribeForm = document.getElementById("subscribeForm");
       const subscribeEmail = document.getElementById("subscribeEmail");
+      const subscribeSubmitButton = document.getElementById("subscribeSubmitButton");
+      const subscribeStatus = document.getElementById("subscribeStatus");
+      const SUBSCRIBE_ENDPOINT = "https://relaunch-activity.mithrilstudio.com/api/subscribers";
+
+      const setSubscribeStatus = (message, kind = "") => {
+        subscribeStatus.textContent = message || "";
+        subscribeStatus.dataset.kind = message ? kind : "";
+      };
       const introTrack = document.getElementById("introTrack");
       const finalContent = document.querySelector(".final-content");
       const heroBackground = document.getElementById("heroBackground");
@@ -940,6 +966,9 @@
       introTrack.addEventListener("animationend", startIntroFinaleHold, { once: true });
 
       subscribeTrigger.addEventListener("click", () => {
+        setSubscribeStatus("");
+        subscribeSubmitButton.disabled = false;
+        subscribeSubmitButton.textContent = "Subscribe";
         subscribeDialog.showModal();
 
         if (window.matchMedia("(pointer: coarse)").matches) {
@@ -951,7 +980,7 @@
         }
       });
 
-      subscribeForm.addEventListener("submit", (event) => {
+      subscribeForm.addEventListener("submit", async (event) => {
         event.preventDefault();
 
         if (!subscribeForm.checkValidity()) {
@@ -959,8 +988,36 @@
           return;
         }
 
-        subscribeDialog.close();
-        subscribeForm.reset();
+        const email = subscribeEmail.value.trim();
+        const controller = new AbortController();
+        const timeoutId = window.setTimeout(() => controller.abort(), 12000);
+
+        setSubscribeStatus("");
+        subscribeSubmitButton.disabled = true;
+        subscribeSubmitButton.textContent = "Subscribing...";
+
+        try {
+          const response = await fetch(SUBSCRIBE_ENDPOINT, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ email }),
+            signal: controller.signal,
+          });
+
+          if (!response.ok) {
+            throw new Error("Subscription request failed.");
+          }
+
+          window.clearTimeout(timeoutId);
+          subscribeForm.reset();
+          subscribeSubmitButton.textContent = "Subscribed";
+          setSubscribeStatus("You're on the list. See you soon.", "success");
+        } catch {
+          window.clearTimeout(timeoutId);
+          subscribeSubmitButton.disabled = false;
+          subscribeSubmitButton.textContent = "Subscribe";
+          setSubscribeStatus("Something went wrong. Please try again.", "error");
+        }
       });
 
       subscribeDialog.addEventListener("click", (event) => {

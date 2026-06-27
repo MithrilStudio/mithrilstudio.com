@@ -4,7 +4,7 @@
 
 - This repository is the public `mithrilstudio.com` static landing page.
 - The primary page is `index.html`; visual and media assets live in `static/`.
-- The guess-name form is a frontend entry point only. Its backend lives in sibling repository `D:\workspace\projs\MithrilStudio\guess-name.mithrilstudio.com`.
+- The relaunch activity form is a frontend entry point only. Its backend lives in sibling repository `D:\workspace\projs\MithrilStudio\relaunch-activity.mithrilstudio.com`.
 
 ## Read First
 
@@ -24,8 +24,8 @@
 
 - Keep the first screen as the actual landing experience, not a marketing placeholder.
 - Keep `index.html` as a compact static page using the existing Tailwind browser CDN and inline styles unless a broader build-system change is explicitly requested.
-- Preserve the form field names `guessName` and `email`; the backend API expects those names.
-- If wiring the form to production, submit to `https://guess-name.mithrilstudio.com/api/guesses` and handle both success and failure states without exposing backend internals.
+- The subscribe form submits a single field named `email`; the backend API expects only `email`.
+- If wiring the form to production, submit `email` to `https://relaunch-activity.mithrilstudio.com/api/subscribers` and handle both success and failure states without exposing backend internals.
 - Use existing raster/video assets in `static/` when possible. Do not replace real product or campaign art with generic decorative SVGs.
 
 ## Assets and Publishing
