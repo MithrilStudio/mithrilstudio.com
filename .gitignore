@@ -1,0 +1,32 @@
+# 秘密与本地凭据（永不提交）
+/development/secret/*
+!/development/secret/README.md
+*.key
+*.pem
+*.id_ed25519
+*.id_rsa
+id_ed25519*
+id_rsa*
+*.ppk
+*_token
+*.secret
+.env
+.env.*
+!.env.example
+
+# 临时排障产物
+/build/
+
+# SSH 已知主机与本地会话
+known_hosts
+*.session
+
+# 抓取的线上配置快照（可能含敏感信息，默认不入库）
+/development/snapshots/
+
+# 操作系统与编辑器
+.DS_Store
+Thumbs.db
+*.swp
+*~
+.vscode/*
