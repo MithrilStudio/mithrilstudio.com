@@ -110,18 +110,17 @@
           return true;
         };
 
+        const canSyncAmbientAudioToTimeline = () => {
+          return getIntroScrollStartTimeMs() !== null && ambientAudio.readyState >= HTMLMediaElement.HAVE_METADATA;
+        };
+
         const syncAmbientAudioToPendingTimeline = () => {
-          if (!pendingTimelineSync) {
+          if (!pendingTimelineSync || !canSyncAmbientAudioToTimeline()) {
             return false;
           }
 
-          const didSync = syncAmbientAudioToTimeline({ force: true });
-
-          if (didSync) {
-            pendingTimelineSync = false;
-          }
-
-          return didSync;
+          pendingTimelineSync = false;
+          return syncAmbientAudioToTimeline();
         };
 
         const configureAmbientAudio = () => {
@@ -1142,12 +1141,28 @@
         introFallbackTimer = window.setTimeout(startIntroFinaleHold, INTRO_FALLBACK_MS);
       };
 
+      const getAmbientAudioElapsedMs = () => {
+        const ambientAudio = window.mithrilAmbientAudio;
+
+        if (!ambientAudio) {
+          return 0;
+        }
+
+        const currentTimeMs = ambientAudio.currentTime * 1000;
+
+        if (!Number.isFinite(currentTimeMs) || currentTimeMs <= 0) {
+          return 0;
+        }
+
+        return currentTimeMs;
+      };
+
       const registerIntroScrollStart = () => {
         if (typeof window.mithrilIntroScrollStartTimeMs === "number") {
           return;
         }
 
-        window.mithrilIntroScrollStartTimeMs = performance.now();
+        window.mithrilIntroScrollStartTimeMs = performance.now() - getAmbientAudioElapsedMs();
         window.startMithrilAmbientAudio?.({ forceSync: true });
       };
 
