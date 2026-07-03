@@ -1176,6 +1176,7 @@
       const INTRO_FINALE_HOLD_MS = 1600;
       const INTRO_FALLBACK_MS = 100000;
       const BACKGROUND_PLAY_RETRY_DELAYS_MS = [0, 300, 1200];
+      const BACKGROUND_PAUSE_RESUME_DELAYS_MS = [80, 300, 1200];
       const INTRO_FAST_FORWARD_RATE = 9;
       window.mithrilIntroScrollStartTimeMs = null;
       window.mithrilAmbientUserMuted =
@@ -1406,6 +1407,37 @@
         event.preventDefault();
       };
 
+      const isBackgroundVideoRecoverable = (video) => {
+        return Boolean(video && video.isConnected && heroBackground?.contains(video) && !video.ended && !video.error);
+      };
+
+      const resumePausedBackgroundVideo = (video) => {
+        if (!isBackgroundVideoRecoverable(video)) {
+          return;
+        }
+
+        if (video.paused) {
+          playBackgroundVideo(video);
+        }
+
+        if (video.dataset.backgroundVideoResumePending === "true") {
+          return;
+        }
+
+        video.dataset.backgroundVideoResumePending = "true";
+        BACKGROUND_PAUSE_RESUME_DELAYS_MS.forEach((delayMs, index) => {
+          window.setTimeout(() => {
+            if (isBackgroundVideoRecoverable(video) && video.paused) {
+              playBackgroundVideo(video);
+            }
+
+            if (index === BACKGROUND_PAUSE_RESUME_DELAYS_MS.length - 1) {
+              delete video.dataset.backgroundVideoResumePending;
+            }
+          }, delayMs);
+        });
+      };
+
       const configureBackgroundVideo = (video) => {
         if (!video) {
           return;
@@ -1432,6 +1464,9 @@
 
         if (video.dataset.backgroundVideoConfigured !== "true") {
           video.dataset.backgroundVideoConfigured = "true";
+          video.addEventListener("pause", () => {
+            resumePausedBackgroundVideo(video);
+          });
           video.addEventListener(
             "playing",
             () => {
