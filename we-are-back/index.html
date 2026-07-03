@@ -4,14 +4,27 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>WE ARE BACK!</title>
-    <link rel="preload" href="../static/Black_Banner_March.aac" as="audio" type="audio/aac" fetchpriority="high" />
     <script>
       (() => {
         if (typeof window.mithrilAmbientUserMuted !== "boolean") {
           window.mithrilAmbientUserMuted = true;
         }
 
-        const ambientAudio = new Audio("../static/Black_Banner_March.aac");
+        const ambientAudio = document.createElement("audio");
+        const ambientAudioSources = [
+          { src: "../static/Black_Banner_March.aac", type: "audio/aac" },
+          { src: "../static/Black_Banner_March.mp3", type: "audio/mpeg" },
+        ];
+        const orderedAmbientAudioSources = /Android/i.test(navigator.userAgent || "")
+          ? [...ambientAudioSources].reverse()
+          : ambientAudioSources;
+
+        orderedAmbientAudioSources.forEach(({ src, type }) => {
+          const source = document.createElement("source");
+          source.src = src;
+          source.type = type;
+          ambientAudio.append(source);
+        });
         ambientAudio.preload = "auto";
         ambientAudio.load();
         const retryEvents = ["pointerdown", "click", "keydown", "touchstart"];
