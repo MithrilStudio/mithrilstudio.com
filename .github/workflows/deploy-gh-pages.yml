@@ -67,6 +67,7 @@ jobs:
             --exclude='docs/ai/' \
             --exclude="start-local-server.*" \
             --exclude="${PUBLISH_DIR}/" \
+            --exclude='we-are-back/index.new.html' \
             "${SOURCE_DIR}/" "${PUBLISH_DIR}/"
 
           touch "${PUBLISH_DIR}/.nojekyll"

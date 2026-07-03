@@ -1599,6 +1599,25 @@
           audioToggle.setAttribute("aria-label", isMuted ? "Unmute background music" : "Mute background music");
         };
 
+        const requestAmbientAudioPlay = () => {
+          if (typeof window.startMithrilAmbientAudio === "function") {
+            return window.startMithrilAmbientAudio({ forceSync: true });
+          }
+
+          const playPromise = ambientAudio.play();
+          if (playPromise) {
+            return playPromise.then(() => true).catch(() => false);
+          }
+
+          return Promise.resolve(true);
+        };
+
+        const restoreBackgroundAfterAudioChange = () => {
+          requestAnimationFrame(() => {
+            retryCurrentBackgroundVideo();
+          });
+        };
+
         ["pointerdown", "click", "keydown", "touchstart"].forEach((eventName) => {
           audioToggle.addEventListener(eventName, (event) => event.stopPropagation());
         });
@@ -1610,19 +1629,23 @@
 
           if (!shouldMute && ambientAudio.paused) {
             window.mithrilAmbientUserPaused = false;
-            if (typeof window.startMithrilAmbientAudio === "function") {
-              window.startMithrilAmbientAudio({ forceSync: true });
-            } else {
-              const playPromise = ambientAudio.play();
-              if (playPromise) {
-                playPromise.catch(() => {});
-              }
-            }
+            Promise.resolve(requestAmbientAudioPlay())
+              .then((didPlay) => {
+                if (!didPlay && ambientAudio.paused) {
+                  window.mithrilAmbientUserMuted = true;
+                  ambientAudio.muted = true;
+                  syncAudioToggleState();
+                }
+              })
+              .finally(restoreBackgroundAfterAudioChange);
+          } else {
+            restoreBackgroundAfterAudioChange();
           }
 
           syncAudioToggleState();
         });
 
+        ambientAudio.addEventListener("playing", restoreBackgroundAfterAudioChange);
         ambientAudio.addEventListener("play", syncAudioToggleState);
         ambientAudio.addEventListener("playing", syncAudioToggleState);
         ambientAudio.addEventListener("pause", syncAudioToggleState);
