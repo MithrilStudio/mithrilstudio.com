@@ -1154,19 +1154,6 @@
       };
       scheduleDailyRevealTriggerUpdate();
 
-      const scheduleOpenTimeRefresh = () => {
-        const msRemaining = getRevealTriggerRemaining();
-
-        if (msRemaining <= 0) {
-          return;
-        }
-
-        window.setTimeout(() => {
-          window.location.reload();
-        }, msRemaining);
-      };
-      scheduleOpenTimeRefresh();
-
       const introStage = document.querySelector(".intro-stage");
       const introTrack = document.getElementById("introTrack");
       const finalContent = document.querySelector(".final-content");
