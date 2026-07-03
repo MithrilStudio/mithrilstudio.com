@@ -1082,6 +1082,62 @@
 
     <script>
       const revealTrigger = document.getElementById("revealTrigger");
+      const getRevealTriggerRemaining = () => {
+        const targetDate = new Date(Date.UTC(2026, 6, 6, 0, 0, 0));
+        const msRemaining = targetDate.getTime() - Date.now();
+        return msRemaining;
+      };
+      const updateRevealTriggerText = () => {
+        const msRemaining = getRevealTriggerRemaining();
+
+        if (msRemaining <= 0) {
+          revealTrigger.textContent = "Unveil";
+          return;
+        }
+
+        const msPerDay = 1000 * 60 * 60 * 24;
+
+        if (msRemaining <= msPerDay) {
+          revealTrigger.textContent = "Unveil Tomorrow";
+          return;
+        }
+
+        const daysRemaining = Math.ceil(msRemaining / msPerDay);
+        revealTrigger.textContent = `Unveil in ${daysRemaining} days`;
+      };
+      updateRevealTriggerText();
+
+      const scheduleDailyRevealTriggerUpdate = () => {
+        const msPerDay = 1000 * 60 * 60 * 24;
+        const msRemaining = getRevealTriggerRemaining();
+
+        if (msRemaining <= 0) {
+          updateRevealTriggerText();
+          return;
+        }
+
+        const msUntilNextBoundary = msRemaining % msPerDay || msPerDay;
+
+        window.setTimeout(() => {
+          updateRevealTriggerText();
+          window.setInterval(updateRevealTriggerText, msPerDay);
+        }, msUntilNextBoundary);
+      };
+      scheduleDailyRevealTriggerUpdate();
+
+      const scheduleOpenTimeRefresh = () => {
+        const msRemaining = getRevealTriggerRemaining();
+
+        if (msRemaining <= 0) {
+          return;
+        }
+
+        window.setTimeout(() => {
+          window.location.reload();
+        }, msRemaining);
+      };
+      scheduleOpenTimeRefresh();
+
       const introStage = document.querySelector(".intro-stage");
       const introTrack = document.getElementById("introTrack");
       const finalContent = document.querySelector(".final-content");
@@ -1579,18 +1635,22 @@
       };
 
       const launchIntroSequence = () => {
-        if (introLaunchRequested) {
-          return;
+        if (getRevealTriggerRemaining() > 0) {
+          primeRevealAudio();
+        } else {
+          if (introLaunchRequested) {
+            return;
+          }
+
+          introLaunchRequested = true;
+          document.body.classList.add("is-intro-launching");
+          revealTrigger.disabled = true;
+          primeRevealAudio();
+
+          Promise.all([ambientReady]).then(() => {
+            requestAnimationFrame(startIntroSequence);
+          });
         }
-
-        introLaunchRequested = true;
-        document.body.classList.add("is-intro-launching");
-        revealTrigger.disabled = true;
-        primeRevealAudio();
-
-        Promise.all([ambientReady]).then(() => {
-          requestAnimationFrame(startIntroSequence);
-        });
       };
 
       revealTrigger.addEventListener("pointerdown", primeRevealAudio);
