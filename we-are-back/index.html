@@ -8,6 +8,8 @@
     <script>
       (() => {
         const ambientAudio = new Audio("../static/Black_Banner_March.aac");
+        ambientAudio.preload = "auto";
+        ambientAudio.load();
         const retryEvents = ["pointerdown", "click", "keydown", "touchstart"];
         const AMBIENT_AUDIO_SYNC_TOLERANCE_SECONDS = 0.18;
         let gestureListenersBound = false;
