@@ -799,10 +799,16 @@
           return;
         }
 
-        const msPerDay = 1000 * 60 * 60 * 24;
+        const msPerHour = 1000 * 60 * 60;
+        const msPerDay = msPerHour * 24;
 
         if (msRemaining <= msPerDay) {
-          revealTrigger.innerHTML = `Unveil <span class="unveil-trigger-remain">Tomorrow</span>`;
+          if (msRemaining <= msPerHour) {
+            revealTrigger.innerHTML = `Unveil in <span class="unveil-trigger-remain">an</span> hour`;
+          } else {
+            const hoursRemaining = Math.ceil(msRemaining / msPerHour);
+            revealTrigger.innerHTML = `Unveil in <span class="unveil-trigger-remain">${hoursRemaining}</span> hours`;
+          }
           revealTrigger.disabled = true;
           return;
         }
@@ -813,8 +819,8 @@
       };
       updateRevealTriggerText();
 
-      const scheduleDailyRevealTriggerUpdate = () => {
-        const msPerDay = 1000 * 60 * 60 * 24;
+      const scheduleHourlyRevealTriggerUpdate = () => {
+        const msPerHour = 1000 * 60 * 60;
         const msRemaining = getRevealTriggerRemaining();
 
         if (msRemaining <= 0) {
@@ -822,14 +828,14 @@
           return;
         }
 
-        const msUntilNextBoundary = msRemaining % msPerDay || msPerDay;
+        const msUntilNextBoundary = msRemaining % msPerHour || msPerHour;
 
         window.setTimeout(() => {
           updateRevealTriggerText();
-          window.setInterval(updateRevealTriggerText, msPerDay);
+          window.setInterval(updateRevealTriggerText, msPerHour);
         }, msUntilNextBoundary);
       };
-      scheduleDailyRevealTriggerUpdate();
+      scheduleHourlyRevealTriggerUpdate();
 
       const scheduleOpenTimeRefresh = () => {
         const msRemaining = getRevealTriggerRemaining();
