@@ -89,17 +89,29 @@ jobs:
       - name: Force-push publish branch
         shell: bash
         env:
-          GITHUB_TOKEN: ${{ github.token }}
+          WEBSITE_DEPLOY_KEY: ${{ secrets.WEBSITE_DEPLOY_KEY }}
         run: |
           set -euo pipefail
+
+          if [ -z "${WEBSITE_DEPLOY_KEY}" ]; then
+            echo "WEBSITE_DEPLOY_KEY secret is not configured." >&2
+            exit 1
+          fi
+
+          ssh_key="${RUNNER_TEMP}/website_deploy_key"
+          known_hosts="${RUNNER_TEMP}/website_known_hosts"
+          printf '%s\n' "${WEBSITE_DEPLOY_KEY}" | tr -d '\r' > "${ssh_key}"
+          chmod 600 "${ssh_key}"
+          ssh-keyscan -t rsa,ecdsa,ed25519 github.com > "${known_hosts}"
 
           cd "${PUBLISH_DIR}"
           git init --initial-branch="${PUBLISH_BRANCH}"
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git config core.sshCommand "ssh -i ${ssh_key} -o IdentitiesOnly=yes -o UserKnownHostsFile=${known_hosts} -o StrictHostKeyChecking=yes"
           git add --all
           git commit -m "Deploy ${GITHUB_SHA}"
-          git remote add origin "https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
+          git remote add origin "git@github.com:${GITHUB_REPOSITORY}.git"
           git push --force origin "HEAD:${PUBLISH_BRANCH}"
 
       - name: Request Pages build
