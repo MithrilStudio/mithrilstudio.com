@@ -6,291 +6,6 @@
     <title>WE ARE BACK!</title>
     <script>
       (() => {
-        if (typeof window.mithrilAmbientUserMuted !== "boolean") {
-          window.mithrilAmbientUserMuted = true;
-        }
-
-        const ambientAudio = document.createElement("audio");
-        const ambientAudioSources = [
-          { src: "../static/Black_Banner_March.aac", type: "audio/aac" },
-          { src: "../static/Black_Banner_March.mp3", type: "audio/mpeg" },
-        ];
-        const orderedAmbientAudioSources = /Android/i.test(navigator.userAgent || "")
-          ? [...ambientAudioSources].reverse()
-          : ambientAudioSources;
-
-        orderedAmbientAudioSources.forEach(({ src, type }) => {
-          const source = document.createElement("source");
-          source.src = src;
-          source.type = type;
-          ambientAudio.append(source);
-        });
-        ambientAudio.preload = "auto";
-        ambientAudio.load();
-        const retryEvents = ["pointerdown", "click", "keydown", "touchstart"];
-        const AMBIENT_AUDIO_SYNC_TOLERANCE_SECONDS = 0.18;
-        let gestureListenersBound = false;
-        let pendingAmbientPlayAttempt = null;
-        let pendingTimelineSync = false;
-        let hasResolvedAudioPrepared = false;
-        let hasResolvedAudioStart = false;
-        let resolveAmbientAudioPrepared = () => {};
-        let resolveAmbientAudioStarted = () => {};
-
-        const ambientAudioPrepared = new Promise((resolve) => {
-          resolveAmbientAudioPrepared = resolve;
-        });
-
-        const ambientAudioStarted = new Promise((resolve) => {
-          resolveAmbientAudioStarted = resolve;
-        });
-
-        const resolveAudioPrepared = () => {
-          if (hasResolvedAudioPrepared) {
-            return;
-          }
-
-          hasResolvedAudioPrepared = true;
-          resolveAmbientAudioPrepared();
-        };
-
-        const resolveAudioStart = () => {
-          if (hasResolvedAudioStart) {
-            return;
-          }
-
-          hasResolvedAudioStart = true;
-          resolveAmbientAudioStarted();
-        };
-
-        const getIntroScrollStartTimeMs = () => {
-          return typeof window.mithrilIntroScrollStartTimeMs === "number" ? window.mithrilIntroScrollStartTimeMs : null;
-        };
-
-        const getTimelineElapsedSeconds = (nowMs = performance.now()) => {
-          const scrollStartTimeMs = getIntroScrollStartTimeMs();
-
-          if (scrollStartTimeMs === null) {
-            return null;
-          }
-
-          return Math.max(0, (nowMs - scrollStartTimeMs) / 1000);
-        };
-
-        const getWrappedAudioTime = (elapsedSeconds) => {
-          const duration = ambientAudio.duration;
-
-          if (!Number.isFinite(duration) || duration <= 0) {
-            return Math.max(0, elapsedSeconds);
-          }
-
-          return elapsedSeconds % duration;
-        };
-
-        const getAudioTimeDifference = (currentTime, targetTime) => {
-          const duration = ambientAudio.duration;
-
-          if (!Number.isFinite(duration) || duration <= 0) {
-            return Math.abs(currentTime - targetTime);
-          }
-
-          const difference = Math.abs(currentTime - targetTime);
-          return Math.min(difference, Math.abs(duration - difference));
-        };
-
-        const syncAmbientAudioToTimeline = ({ force = false, nowMs = performance.now() } = {}) => {
-          const elapsedSeconds = getTimelineElapsedSeconds(nowMs);
-
-          if (elapsedSeconds === null || ambientAudio.readyState < HTMLMediaElement.HAVE_METADATA) {
-            return false;
-          }
-
-          const targetTime = getWrappedAudioTime(elapsedSeconds);
-          const timeDifference = getAudioTimeDifference(ambientAudio.currentTime, targetTime);
-
-          if (!force && timeDifference <= AMBIENT_AUDIO_SYNC_TOLERANCE_SECONDS) {
-            return false;
-          }
-
-          try {
-            ambientAudio.currentTime = targetTime;
-            return true;
-          } catch {
-            return false;
-          }
-        };
-
-        const queueTimelineSync = () => {
-          if (getIntroScrollStartTimeMs() === null) {
-            return false;
-          }
-
-          pendingTimelineSync = true;
-          return true;
-        };
-
-        const canSyncAmbientAudioToTimeline = () => {
-          return getIntroScrollStartTimeMs() !== null && ambientAudio.readyState >= HTMLMediaElement.HAVE_METADATA;
-        };
-
-        const syncAmbientAudioToPendingTimeline = () => {
-          if (!pendingTimelineSync || !canSyncAmbientAudioToTimeline()) {
-            return false;
-          }
-
-          pendingTimelineSync = false;
-          return syncAmbientAudioToTimeline();
-        };
-
-        const configureAmbientAudio = () => {
-          ambientAudio.id = "ambientAudio";
-          ambientAudio.loop = true;
-          ambientAudio.preload = "auto";
-          ambientAudio.autoplay = false;
-          ambientAudio.muted = Boolean(window.mithrilAmbientUserMuted);
-          ambientAudio.volume = 1;
-        };
-
-        const loadAmbientAudio = () => {
-          configureAmbientAudio();
-
-          if (ambientAudio.networkState === HTMLMediaElement.NETWORK_EMPTY) {
-            ambientAudio.load();
-          }
-        };
-
-        const removeGestureListeners = () => {
-          gestureListenersBound = false;
-          retryEvents.forEach((eventName) => {
-            window.removeEventListener(eventName, retryAmbientAudio);
-          });
-        };
-
-        const bindGestureListeners = () => {
-          if (gestureListenersBound) {
-            return;
-          }
-
-          gestureListenersBound = true;
-          retryEvents.forEach((eventName) => {
-            window.addEventListener(eventName, retryAmbientAudio);
-          });
-        };
-
-        const playAmbientAudio = ({ forceSync = false } = {}) => {
-          configureAmbientAudio();
-
-          if (window.mithrilAmbientUserPaused) {
-            return Promise.resolve(false);
-          }
-
-          if (forceSync) {
-            queueTimelineSync();
-          }
-
-          if (!ambientAudio.paused && !pendingAmbientPlayAttempt) {
-            syncAmbientAudioToPendingTimeline();
-            resolveAudioStart();
-            removeGestureListeners();
-            return Promise.resolve(true);
-          }
-
-          if (pendingAmbientPlayAttempt) {
-            return pendingAmbientPlayAttempt;
-          }
-
-          if (ambientAudio.networkState === HTMLMediaElement.NETWORK_EMPTY) {
-            ambientAudio.load();
-          }
-
-          const playPromise = ambientAudio.play();
-
-          if (!playPromise) {
-            syncAmbientAudioToPendingTimeline();
-            resolveAudioStart();
-            removeGestureListeners();
-            return Promise.resolve(true);
-          }
-
-          pendingAmbientPlayAttempt = playPromise
-            .then(() => {
-              syncAmbientAudioToPendingTimeline();
-              resolveAudioStart();
-              removeGestureListeners();
-              return true;
-            })
-            .catch(() => {
-              if (!window.mithrilAmbientUserPaused) {
-                bindGestureListeners();
-              }
-
-              return false;
-            })
-            .finally(() => {
-              pendingAmbientPlayAttempt = null;
-            });
-
-          return pendingAmbientPlayAttempt;
-        };
-
-        function retryAmbientAudio() {
-          if (window.mithrilAmbientUserPaused) {
-            return;
-          }
-
-          if (getIntroScrollStartTimeMs() === null) {
-            return;
-          }
-
-          playAmbientAudio({ forceSync: true });
-        }
-
-        ambientAudio.addEventListener("loadedmetadata", () => {
-          resolveAudioPrepared();
-        });
-        ambientAudio.addEventListener("loadeddata", resolveAudioPrepared);
-        ambientAudio.addEventListener("canplay", resolveAudioPrepared);
-        ambientAudio.addEventListener("playing", () => {
-          syncAmbientAudioToPendingTimeline();
-          resolveAudioStart();
-        });
-        ambientAudio.addEventListener("timeupdate", () => {
-          if (ambientAudio.currentTime > 0) {
-            resolveAudioStart();
-          }
-        });
-
-        window.mithrilAmbientAudio = ambientAudio;
-        window.mithrilAmbientAudioPrepared = ambientAudioPrepared;
-        window.mithrilAmbientAudioStarted = ambientAudioStarted;
-        window.prepareMithrilAmbientAudio = loadAmbientAudio;
-        window.startMithrilAmbientAudio = playAmbientAudio;
-        window.syncMithrilAmbientAudioToTimeline = syncAmbientAudioToTimeline;
-        loadAmbientAudio();
-        window.addEventListener("load", loadAmbientAudio, { once: true });
-        window.addEventListener("pageshow", () => {
-          if (window.mithrilAmbientUserPaused) {
-            return;
-          }
-
-          if (getIntroScrollStartTimeMs() === null) {
-            loadAmbientAudio();
-            return;
-          }
-
-          playAmbientAudio({ forceSync: true });
-        });
-        document.addEventListener(
-          "DOMContentLoaded",
-          () => {
-            document.body.prepend(ambientAudio);
-          },
-          { once: true },
-        );
-      })();
-    </script>
-    <script>
-      (() => {
         const documentElement = document.documentElement;
         const languages =
           Array.isArray(navigator.languages) && navigator.languages.length
@@ -693,11 +408,6 @@
           transform 200ms ease;
       }
 
-      .unveil-trigger-remain {
-        font-size: x-large;
-        color: darkgoldenrod;
-      }
-
       .unveil-trigger:not(:disabled):hover,
       .unveil-trigger:not(:disabled):focus-visible {
         background: rgba(139, 115, 85, 0.9);
@@ -814,64 +524,6 @@
         border: 0;
       }
 
-      .audio-toggle {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        flex: 0 0 auto;
-        width: 48px;
-        height: 48px;
-        padding: 0;
-        border-radius: 4px;
-        border: 1px solid rgba(201, 168, 76, 0.45);
-        background: rgba(11, 12, 18, 0.72);
-        color: #e8e6e3;
-        cursor: pointer;
-        backdrop-filter: blur(6px);
-        -webkit-backdrop-filter: blur(6px);
-        box-shadow: 0 4px 18px rgba(0, 0, 0, 0.45);
-        transition:
-          background 200ms ease,
-          border-color 200ms ease,
-          color 200ms ease,
-          transform 200ms ease;
-      }
-
-      .audio-toggle:hover {
-        background: rgba(28, 28, 42, 0.88);
-        border-color: rgba(201, 168, 76, 0.85);
-        color: #fff8ed;
-      }
-
-      .audio-toggle:active {
-        transform: scale(0.94);
-      }
-
-      .audio-toggle:focus-visible {
-        outline: none;
-        border-color: #c9a84c;
-        box-shadow: 0 0 0 3px rgba(201, 168, 76, 0.45);
-      }
-
-      .audio-toggle svg {
-        width: 22px;
-        height: 22px;
-        fill: currentColor;
-        pointer-events: none;
-      }
-
-      .audio-toggle .icon-on,
-      .audio-toggle .icon-off {
-        display: none;
-      }
-
-      .audio-toggle:not(.is-muted) .icon-on {
-        display: block;
-      }
-
-      .audio-toggle.is-muted .icon-off {
-        display: block;
-      }
 
       @media (max-width: 480px) {
         .hero-art {
@@ -922,10 +574,6 @@
           font-size: 15px;
         }
 
-        .audio-toggle {
-          width: 46px;
-          height: 46px;
-        }
 
         .intro-viewport {
           width: 88vw;
@@ -1025,25 +673,6 @@
               <h1 class="intro-headline">WE ARE BACK!</h1>
               <div class="intro-actions" aria-label="Reveal controls">
                 <button id="revealTrigger" class="unveil-trigger" type="button">Unveil</button>
-                <button
-                  id="audioToggle"
-                  class="audio-toggle is-muted"
-                  type="button"
-                  aria-pressed="true"
-                  aria-label="Unmute background music"
-                  title="Background music"
-                >
-                  <svg class="icon-on" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-                    <path
-                      d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"
-                    />
-                  </svg>
-                  <svg class="icon-off" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-                    <path
-                      d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.2.05-.41.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51C20.63 14.91 21 13.5 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3L3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06c1.38-.31 2.63-.95 3.69-1.81L19.73 21 21 19.73l-9-9L4.27 3zM12 4L9.91 6.09 12 8.18V4z"
-                    />
-                  </svg>
-                </button>
               </div>
             </div>
             <div class="intro-viewport" aria-hidden="true">
@@ -1122,57 +751,6 @@
 
     <script>
       const revealTrigger = document.getElementById("revealTrigger");
-      const getRevealTriggerRemaining = () => {
-        const targetDate = new Date(Date.UTC(2026, 6, 6, 14, 0, 0));
-        const msRemaining = targetDate.getTime() - Date.now();
-        return msRemaining;
-      };
-      const updateRevealTriggerText = () => {
-        const msRemaining = getRevealTriggerRemaining();
-
-        if (msRemaining <= 0) {
-          revealTrigger.innerHTML = "Unveil";
-          revealTrigger.disabled = false;
-          return;
-        }
-
-        const msPerHour = 1000 * 60 * 60;
-        const msPerDay = msPerHour * 24;
-
-        if (msRemaining <= msPerDay) {
-          if (msRemaining <= msPerHour) {
-            revealTrigger.innerHTML = `Unveil in <span class="unveil-trigger-remain">an</span> hour`;
-          } else {
-            const hoursRemaining = Math.ceil(msRemaining / msPerHour);
-            revealTrigger.innerHTML = `Unveil in <span class="unveil-trigger-remain">${hoursRemaining}</span> hours`;
-          }
-          revealTrigger.disabled = true;
-          return;
-        }
-
-        const daysRemaining = Math.ceil(msRemaining / msPerDay);
-        revealTrigger.innerHTML = `Unveil in <span class="unveil-trigger-remain">${daysRemaining}</span> days`;
-        revealTrigger.disabled = true;
-      };
-      updateRevealTriggerText();
-
-      const scheduleHourlyRevealTriggerUpdate = () => {
-        const msPerHour = 1000 * 60 * 60;
-        const msRemaining = getRevealTriggerRemaining();
-
-        if (msRemaining <= 0) {
-          updateRevealTriggerText();
-          return;
-        }
-
-        const msUntilNextBoundary = msRemaining % msPerHour || msPerHour;
-
-        window.setTimeout(() => {
-          updateRevealTriggerText();
-          window.setInterval(updateRevealTriggerText, msPerHour);
-        }, msUntilNextBoundary);
-      };
-      scheduleHourlyRevealTriggerUpdate();
 
       const introStage = document.querySelector(".intro-stage");
       const introTrack = document.getElementById("introTrack");
@@ -1186,8 +764,6 @@
       const BACKGROUND_PAUSE_RESUME_DELAYS_MS = [80, 300, 1200];
       const INTRO_FAST_FORWARD_RATE = 9;
       window.mithrilIntroScrollStartTimeMs = null;
-      window.mithrilAmbientUserMuted =
-        typeof window.mithrilAmbientUserMuted === "boolean" ? window.mithrilAmbientUserMuted : true;
       let introFallbackTimer = null;
       let introLaunchRequested = false;
       let introFastForwardPointerId = null;
@@ -1270,29 +846,12 @@
         introFallbackTimer = window.setTimeout(startIntroFinaleHold, INTRO_FALLBACK_MS);
       };
 
-      const getAmbientAudioElapsedMs = () => {
-        const ambientAudio = window.mithrilAmbientAudio;
-
-        if (!ambientAudio) {
-          return 0;
-        }
-
-        const currentTimeMs = ambientAudio.currentTime * 1000;
-
-        if (!Number.isFinite(currentTimeMs) || currentTimeMs <= 0) {
-          return 0;
-        }
-
-        return currentTimeMs;
-      };
-
       const registerIntroScrollStart = () => {
         if (typeof window.mithrilIntroScrollStartTimeMs === "number") {
           return;
         }
 
-        window.mithrilIntroScrollStartTimeMs = performance.now() - getAmbientAudioElapsedMs();
-        window.startMithrilAmbientAudio?.({ forceSync: true });
+        window.mithrilIntroScrollStartTimeMs = performance.now();
       };
 
       const isIntroScrollActive = () => {
@@ -1639,74 +1198,6 @@
         window.addEventListener(eventName, retryCurrentBackgroundVideo, { passive: true });
       });
 
-      (() => {
-        const audioToggle = document.getElementById("audioToggle");
-        const ambientAudio = window.mithrilAmbientAudio;
-
-        if (!audioToggle || !ambientAudio) {
-          return;
-        }
-
-        const syncAudioToggleState = () => {
-          const isMuted = ambientAudio.muted;
-          audioToggle.classList.toggle("is-muted", isMuted);
-          audioToggle.setAttribute("aria-pressed", String(isMuted));
-          audioToggle.setAttribute("aria-label", isMuted ? "Unmute background music" : "Mute background music");
-        };
-
-        const requestAmbientAudioPlay = () => {
-          if (typeof window.startMithrilAmbientAudio === "function") {
-            return window.startMithrilAmbientAudio({ forceSync: true });
-          }
-
-          const playPromise = ambientAudio.play();
-          if (playPromise) {
-            return playPromise.then(() => true).catch(() => false);
-          }
-
-          return Promise.resolve(true);
-        };
-
-        const restoreBackgroundAfterAudioChange = () => {
-          requestAnimationFrame(() => {
-            retryCurrentBackgroundVideo();
-          });
-        };
-
-        ["pointerdown", "click", "keydown", "touchstart"].forEach((eventName) => {
-          audioToggle.addEventListener(eventName, (event) => event.stopPropagation());
-        });
-
-        audioToggle.addEventListener("click", () => {
-          const shouldMute = !ambientAudio.muted;
-          window.mithrilAmbientUserMuted = shouldMute;
-          ambientAudio.muted = shouldMute;
-
-          if (!shouldMute && ambientAudio.paused) {
-            window.mithrilAmbientUserPaused = false;
-            Promise.resolve(requestAmbientAudioPlay())
-              .then((didPlay) => {
-                if (!didPlay && ambientAudio.paused) {
-                  window.mithrilAmbientUserMuted = true;
-                  ambientAudio.muted = true;
-                  syncAudioToggleState();
-                }
-              })
-              .finally(restoreBackgroundAfterAudioChange);
-          } else {
-            restoreBackgroundAfterAudioChange();
-          }
-
-          syncAudioToggleState();
-        });
-
-        ambientAudio.addEventListener("playing", restoreBackgroundAfterAudioChange);
-        ambientAudio.addEventListener("play", syncAudioToggleState);
-        ambientAudio.addEventListener("playing", syncAudioToggleState);
-        ambientAudio.addEventListener("pause", syncAudioToggleState);
-        ambientAudio.addEventListener("volumechange", syncAudioToggleState);
-        syncAudioToggleState();
-      })();
 
       window.addEventListener("resize", () => {
         if (!document.body.classList.contains("is-intro-ready")) {
@@ -1717,29 +1208,8 @@
         document.fonts ? document.fonts.ready.catch(() => {}) : Promise.resolve(),
         new Promise((resolve) => window.setTimeout(resolve, 1200)),
       ]);
-      const ambientReady = Promise.race([
-        window.mithrilAmbientAudioPrepared || Promise.resolve(),
-        new Promise((resolve) => window.setTimeout(resolve, 5000)),
-      ]);
 
-      const primeRevealAudio = () => {
-        const ambientAudio = window.mithrilAmbientAudio;
-        window.mithrilAmbientUserMuted = false;
-        window.mithrilAmbientUserPaused = false;
-        if (ambientAudio) {
-          ambientAudio.muted = false;
-        }
-
-        retryCurrentBackgroundVideo();
-        window.prepareMithrilAmbientAudio?.();
-        window.startMithrilAmbientAudio?.({ forceSync: true });
-      };
-
-      const launchIntroSequence = () => {
-        if (getRevealTriggerRemaining() > 0) {
-          return;
-        }
-
+      const launchFinalContent = () => {
         if (introLaunchRequested) {
           return;
         }
@@ -1747,28 +1217,12 @@
         introLaunchRequested = true;
         document.body.classList.add("is-intro-launching");
         revealTrigger.disabled = true;
-        primeRevealAudio();
-
-        Promise.all([ambientReady]).then(() => {
-          requestAnimationFrame(startIntroSequence);
-        });
+        document.body.classList.add("is-intro-finished", "is-background-restoring");
+        startCurrentBackgroundVideo();
+        requestAnimationFrame(revealFinalContent);
       };
 
-      revealTrigger.addEventListener("pointerdown", () => {
-        if (getRevealTriggerRemaining() > 0) {
-          return;
-        }
-        primeRevealAudio();
-      });
-      revealTrigger.addEventListener("keydown", (event) => {
-        if (event.key === "Enter" || event.key === " ") {
-          if (getRevealTriggerRemaining() > 0) {
-            return;
-          }
-          primeRevealAudio();
-        }
-      });
-      revealTrigger.addEventListener("click", launchIntroSequence);
+      revealTrigger.addEventListener("click", launchFinalContent);
       if (introStage) {
         introStage.addEventListener("pointerdown", startIntroFastForwardPointer);
         introStage.addEventListener("pointerup", stopIntroFastForwardPointer);
