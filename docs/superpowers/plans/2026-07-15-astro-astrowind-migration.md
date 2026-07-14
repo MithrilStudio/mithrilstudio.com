@@ -54,7 +54,7 @@ const read = (path) => readFile(new URL(`../${path}`, import.meta.url), "utf8");
 
 test("legacy root keeps every redirect fallback", async () => {
   const html = await read("index.html");
-  assert.match(html, /rel="canonical" href="https:\/\/mithrilstudio\.com\/we-are-back\/"/);
+  assert.match(html, /rel="canonical" href="\.\/we-are-back\/"/);
   assert.match(html, /http-equiv="refresh" content="0; url=\.\/we-are-back\/"/);
   assert.match(html, /window\.location\.replace\("\.\/we-are-back\/"\)/);
   assert.match(html, /href="\.\/we-are-back\/"/);
@@ -85,7 +85,7 @@ test("legacy 404 keeps its content and shared integrations", async () => {
   for (const token of [
     "404",
     "Page Not Found",
-    'href="./"',
+    'href="/we-are-back/"',
     "./static/bg.jpg",
     "./static/bg.mp4",
     "G-TYCXYX29SE",
