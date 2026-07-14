@@ -524,6 +524,44 @@
         border: 0;
       }
 
+      .icp-filing {
+        position: fixed;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        z-index: 30;
+        display: none;
+        justify-content: center;
+        padding: 6px 12px;
+        background: linear-gradient(180deg, rgba(5, 7, 15, 0), rgba(5, 7, 15, 0.78));
+        pointer-events: auto;
+      }
+
+      .icp-filing.is-visible {
+        display: flex;
+      }
+
+      .icp-filing a {
+        color: rgba(232, 230, 227, 0.72);
+        font-family: var(--site-font-body);
+        font-size: 12px;
+        line-height: 1.4;
+        text-align: center;
+        text-decoration: none;
+        text-shadow: 0 1px 6px rgba(0, 0, 0, 0.9);
+      }
+
+      .icp-filing a:hover,
+      .icp-filing a:focus-visible {
+        color: rgba(232, 230, 227, 0.96);
+        text-decoration: underline;
+      }
+
+      .icp-filing a:focus-visible {
+        outline: none;
+        box-shadow: 0 2px 0 rgba(201, 168, 76, 0.9);
+      }
+
 
       @media (max-width: 480px) {
         .hero-art {
@@ -748,6 +786,51 @@
         </div>
       </div>
     </div>
+
+    <footer id="icpFiling" class="icp-filing" aria-label="ICP 备案信息">
+      <a href="https://beian.miit.gov.cn/" target="_blank" rel="noopener noreferrer">沪ICP备2026032805号-1</a>
+    </footer>
+    <script>
+      (() => {
+        const hostname = (window.location.hostname || "").toLowerCase();
+        const isLocalhost =
+          hostname === "localhost";
+        const isMyrionDomain =
+          hostname === "myrionstudio.com" || hostname.endsWith(".myrionstudio.com");
+        if (!isLocalhost && !isMyrionDomain) {
+          return;
+        }
+
+        const languages =
+          Array.isArray(navigator.languages) && navigator.languages.length
+            ? navigator.languages
+            : [navigator.language || ""];
+        const normalizedLanguages = languages.map((language) => (language || "").toLowerCase());
+        const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone || "";
+        const mainlandChinaTimeZones = new Set([
+          "Asia/Shanghai",
+          "Asia/Urumqi",
+          "Asia/Chongqing",
+          "Asia/Chungking",
+          "Asia/Harbin",
+          "Asia/Kashgar",
+          "PRC",
+        ]);
+        const isSimplifiedChinese = normalizedLanguages.some((language) =>
+          /^zh(?:$|-hans\b|-cn\b)/.test(language),
+        );
+        const isChinaTimezone = mainlandChinaTimeZones.has(timeZone);
+
+        if (!isSimplifiedChinese && !isChinaTimezone) {
+          return;
+        }
+
+        const filing = document.getElementById("icpFiling");
+        if (filing) {
+          filing.classList.add("is-visible");
+        }
+      })();
+    </script>
 
     <script>
       const revealTrigger = document.getElementById("revealTrigger");
