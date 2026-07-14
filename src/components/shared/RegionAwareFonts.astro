@@ -1,0 +1,13 @@
+---
+import landingScript from "../../scripts/fonts/landing.js?raw";
+import notFoundScript from "../../scripts/fonts/not-found.js?raw";
+
+interface Props {
+  variant: "landing" | "not-found";
+}
+
+const { variant } = Astro.props;
+const script = variant === "landing" ? landingScript : notFoundScript;
+---
+
+<script is:inline set:html={script} />

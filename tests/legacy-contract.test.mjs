@@ -22,8 +22,43 @@ test("legacy root keeps every redirect fallback", async () => {
   }
 });
 
-test("legacy landing keeps media, integrations, links, and recovery behavior", async () => {
-  const html = await read("we-are-back/index.html");
+test("legacy 404 keeps its content, navigation, and integrations", async () => {
+  const html = await read("404.html");
+  for (const token of [
+    "404",
+    "Page Not Found",
+    "This Gate Is Missing",
+    "The page you requested is not here.",
+    'href="/we-are-back/"',
+    "/static/bg.jpg",
+    "/static/bg.mp4",
+    ...sharedTokens,
+  ]) {
+    assert.ok(html.includes(token), `missing 404 token: ${token}`);
+  }
+});
+
+test("Astro landing source preserves the legacy contract in focused units", async () => {
+  const paths = [
+    "src/pages/we-are-back/index.astro",
+    "src/styles/theme.css",
+    "src/styles/we-are-back.css",
+    "src/components/shared/RegionAwareFonts.astro",
+    "src/components/shared/IcpFiling.astro",
+    "src/components/we-are-back/HeroBackground.astro",
+    "src/components/we-are-back/HeroContent.astro",
+    "src/scripts/we-are-back.ts",
+    "THIRD_PARTY_NOTICES.md",
+    "src/components/shared/Analytics.astro",
+  ];
+  const files = await Promise.all(paths.map(read));
+  const source = files.join("\n");
+
+  assert.match(files[1], /@import\s+["']tailwindcss["']/);
+  assert.doesNotMatch(source, /@tailwindcss\/browser/);
+  assert.match(files[3], /variant:\s*"landing"\s*\|\s*"not-found"/);
+  assert.match(files[8], /1\.0\.0-beta\.63/);
+  assert.match(files[8], /522530a/);
   for (const token of [
     "../static/bg.jpg",
     "../static/bg.mp4",
@@ -39,22 +74,6 @@ test("legacy landing keeps media, integrations, links, and recovery behavior", a
     "mailto:contact@myrionstudio.com",
     ...sharedTokens,
   ]) {
-    assert.ok(html.includes(token), `missing landing token: ${token}`);
-  }
-});
-
-test("legacy 404 keeps its content, navigation, and integrations", async () => {
-  const html = await read("404.html");
-  for (const token of [
-    "404",
-    "Page Not Found",
-    "This Gate Is Missing",
-    "The page you requested is not here.",
-    'href="/we-are-back/"',
-    "/static/bg.jpg",
-    "/static/bg.mp4",
-    ...sharedTokens,
-  ]) {
-    assert.ok(html.includes(token), `missing 404 token: ${token}`);
+    assert.ok(source.includes(token), `missing Astro landing token: ${token}`);
   }
 });

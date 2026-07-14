@@ -1,0 +1,32 @@
+---
+import Analytics from "../../components/shared/Analytics.astro";
+import IcpFiling from "../../components/shared/IcpFiling.astro";
+import RegionAwareFonts from "../../components/shared/RegionAwareFonts.astro";
+import HeroBackground from "../../components/we-are-back/HeroBackground.astro";
+import HeroContent from "../../components/we-are-back/HeroContent.astro";
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import "../../styles/theme.css";
+import "../../styles/we-are-back.css";
+---
+
+<BaseLayout title="WE ARE BACK!" htmlLang="en-US" bodyClass="bg-[#05070f]">
+  <RegionAwareFonts slot="head" variant="landing" />
+
+  <div class="min-h-screen text-primary-text relative">
+    <div class="relative z-10">
+      <section id="hero" class="relative min-h-screen flex items-center justify-center overflow-hidden">
+        <HeroBackground />
+        <HeroContent />
+      </section>
+      <div class="relative w-full flex justify-center">
+        <img src="../static/bottom_highlight.png" alt="" aria-hidden="true" class="h-[2px] w-auto" />
+      </div>
+    </div>
+  </div>
+
+  <IcpFiling />
+  <script>
+    import "../../scripts/we-are-back.ts";
+  </script>
+  <Analytics />
+</BaseLayout>
