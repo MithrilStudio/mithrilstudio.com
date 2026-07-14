@@ -1,0 +1,28 @@
+---
+import NotFoundBackground from "../components/not-found/NotFoundBackground.astro";
+import NotFoundContent from "../components/not-found/NotFoundContent.astro";
+import Analytics from "../components/shared/Analytics.astro";
+import IcpFiling from "../components/shared/IcpFiling.astro";
+import RegionAwareFonts from "../components/shared/RegionAwareFonts.astro";
+import BaseLayout from "../layouts/BaseLayout.astro";
+import "../styles/not-found.css";
+---
+
+<BaseLayout title="Page Not Found" htmlLang="en-US">
+  <meta slot="head" name="robots" content="noindex" />
+  <RegionAwareFonts slot="head" variant="not-found" />
+
+  <main class="not-found-page" aria-labelledby="notFoundTitle">
+    <NotFoundBackground />
+    <NotFoundContent />
+    <div class="not-found-highlight" aria-hidden="true">
+      <img src="/static/bottom_highlight.png" alt="" />
+    </div>
+  </main>
+
+  <IcpFiling variant="not-found" />
+  <script>
+    import "../scripts/not-found.ts";
+  </script>
+  <Analytics />
+</BaseLayout>

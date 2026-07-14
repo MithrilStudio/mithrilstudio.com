@@ -89,6 +89,7 @@ test("built 404 is the root custom error document", async () => {
   ]) {
     assert.ok(html.includes(token), `missing built 404 token: ${token}`);
   }
+  assert.equal(visibleTextHash(html), "9ee803e428b1e729f456cab6493cbfd720ac57581079f45c92a5f3adc16674b2");
   await assert.rejects(stat(new URL("404/index.html", dist)), { code: "ENOENT" });
 });
 

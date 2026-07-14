@@ -1,48 +1,17 @@
 ---
+import landingScript from "../../scripts/icp/landing.js?raw";
+import notFoundScript from "../../scripts/icp/not-found.js?raw";
+
 interface Props {
+  variant: "landing" | "not-found";
   className?: string;
 }
 
-const { className } = Astro.props;
+const { variant, className } = Astro.props;
+const script = variant === "landing" ? landingScript : notFoundScript;
 ---
 
 <footer id="icpFiling" class:list={["icp-filing", className]} aria-label="ICP 备案信息">
   <a href="https://beian.miit.gov.cn/" target="_blank" rel="noopener noreferrer">沪ICP备2026032805号-1</a>
 </footer>
-<script is:inline>
-  (() => {
-    const hostname = (window.location.hostname || "").toLowerCase();
-    const isLocalhost = hostname === "localhost";
-    const isMyrionDomain = hostname === "myrionstudio.com" || hostname.endsWith(".myrionstudio.com");
-    if (!isLocalhost && !isMyrionDomain) {
-      return;
-    }
-
-    const languages =
-      Array.isArray(navigator.languages) && navigator.languages.length
-        ? navigator.languages
-        : [navigator.language || ""];
-    const normalizedLanguages = languages.map((language) => (language || "").toLowerCase());
-    const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone || "";
-    const mainlandChinaTimeZones = new Set([
-      "Asia/Shanghai",
-      "Asia/Urumqi",
-      "Asia/Chongqing",
-      "Asia/Chungking",
-      "Asia/Harbin",
-      "Asia/Kashgar",
-      "PRC",
-    ]);
-    const isSimplifiedChinese = normalizedLanguages.some((language) => /^zh(?:$|-hans\b|-cn\b)/.test(language));
-    const isChinaTimezone = mainlandChinaTimeZones.has(timeZone);
-
-    if (!isSimplifiedChinese && !isChinaTimezone) {
-      return;
-    }
-
-    const filing = document.getElementById("icpFiling");
-    if (filing) {
-      filing.classList.add("is-visible");
-    }
-  })();
-</script>
+<script is:inline set:html={script} />

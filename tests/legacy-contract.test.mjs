@@ -22,22 +22,6 @@ test("legacy root keeps every redirect fallback", async () => {
   }
 });
 
-test("legacy 404 keeps its content, navigation, and integrations", async () => {
-  const html = await read("404.html");
-  for (const token of [
-    "404",
-    "Page Not Found",
-    "This Gate Is Missing",
-    "The page you requested is not here.",
-    'href="/we-are-back/"',
-    "/static/bg.jpg",
-    "/static/bg.mp4",
-    ...sharedTokens,
-  ]) {
-    assert.ok(html.includes(token), `missing 404 token: ${token}`);
-  }
-});
-
 test("Astro landing source preserves the legacy contract in focused units", async () => {
   const paths = [
     "src/pages/we-are-back/index.astro",
@@ -75,5 +59,34 @@ test("Astro landing source preserves the legacy contract in focused units", asyn
     ...sharedTokens,
   ]) {
     assert.ok(source.includes(token), `missing Astro landing token: ${token}`);
+  }
+});
+
+test("Astro 404 source preserves the legacy contract in focused units", async () => {
+  const paths = [
+    "src/pages/404.astro",
+    "src/styles/not-found.css",
+    "src/components/not-found/NotFoundBackground.astro",
+    "src/components/not-found/NotFoundContent.astro",
+    "src/scripts/not-found.ts",
+    "src/components/shared/RegionAwareFonts.astro",
+    "src/components/shared/IcpFiling.astro",
+    "src/components/shared/Analytics.astro",
+  ];
+  const files = await Promise.all(paths.map(read));
+  const source = files.join("\n");
+
+  for (const token of [
+    "Page Not Found",
+    "This Gate Is Missing",
+    "The page you requested is not here.",
+    'href="/we-are-back/"',
+    "/static/bg.jpg",
+    "/static/bg.mp4",
+    "/static/bottom_highlight.png",
+    "notFoundVideo",
+    ...sharedTokens,
+  ]) {
+    assert.ok(source.includes(token), `missing Astro 404 token: ${token}`);
   }
 });
