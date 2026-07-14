@@ -1,0 +1,7 @@
+.astro/
+.kilo/
+.playwright-mcp/
+build/
+dist/
+node_modules/
+public/static/

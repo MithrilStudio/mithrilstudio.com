@@ -17,6 +17,11 @@ id_rsa*
 # 临时排障产物
 /build/
 
+# Astro 与 pnpm 生成目录
+/.astro/
+/dist/
+/node_modules/
+
 # SSH 已知主机与本地会话
 known_hosts
 *.session

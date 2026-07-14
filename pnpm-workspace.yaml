@@ -1,0 +1,8 @@
+allowBuilds:
+  esbuild: true
+
+# pnpm 11 delays new releases by 24 hours by default. Astro 7.0.9 was
+# individually reviewed for this migration and is the only age exception.
+minimumReleaseAge: 1440
+minimumReleaseAgeExclude:
+  - astro@7.0.9

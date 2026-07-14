@@ -214,12 +214,12 @@ Use these scripts in `package.json`:
   "preview": "astro preview",
   "check": "astro check",
   "format": "prettier --write .",
-  "format:check": "prettier --check .",
+  "format:check": "prettier --check --ignore-unknown .",
   "test:source": "node --test tests/legacy-contract.test.mjs tests/project-contract.test.mjs",
   "test:output": "node --test tests/output-contract.test.mjs",
   "verify": "pnpm run \"/^verify:(astro|format|source)$/\"",
   "verify:astro": "astro check",
-  "verify:format": "prettier --check .",
+  "verify:format": "prettier --check --ignore-unknown .",
   "verify:source": "pnpm test:source"
 }
 ```
