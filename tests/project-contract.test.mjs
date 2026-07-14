@@ -55,3 +55,20 @@ test("pnpm keeps its supply-chain guard while allowing reviewed builds", async (
   assert.match(config, /^allowBuilds:\s*$/m);
   assert.match(config, /^\s+esbuild:\s*true$/m);
 });
+
+test("TypeScript excludes generated and user-tool directories", async () => {
+  const config = JSON.parse(await read("tsconfig.json"));
+
+  assert.deepEqual(config.exclude.sort(), [
+    ".kilo",
+    ".playwright-mcp",
+    "build",
+    "dist",
+  ]);
+});
+
+test("analytics scripts declare their inline execution explicitly", async () => {
+  const component = await read("src/components/shared/Analytics.astro");
+
+  assert.equal(component.match(/\bis:inline\b/g)?.length, 3);
+});
