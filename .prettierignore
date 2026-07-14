@@ -1,7 +1,11 @@
 .astro/
+.agents/
 .kilo/
 .playwright-mcp/
 build/
+CLAUDE.md
 dist/
+docs/superpowers/
 node_modules/
+pnpm-lock.yaml
 public/static/

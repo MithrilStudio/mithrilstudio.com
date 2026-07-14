@@ -18,7 +18,7 @@ concurrency:
 env:
   SOURCE_DIR: source
   PUBLISH_BRANCH: gh-pages
-  PUBLISH_DIR: _site
+  PUBLISH_DIR: source/dist
 
 jobs:
   deploy:
@@ -49,28 +49,35 @@ jobs:
           git lfs fetch origin HEAD
           git lfs fsck --objects
 
-      - name: Prepare publish directory
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v6
+        with:
+          version: 11
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: pnpm
+          cache-dependency-path: ${{ env.SOURCE_DIR }}/pnpm-lock.yaml
+
+      - name: Install dependencies
+        working-directory: ${{ env.SOURCE_DIR }}
+        run: pnpm install --frozen-lockfile
+
+      - name: Build and validate site
+        working-directory: ${{ env.SOURCE_DIR }}
+        run: pnpm build
+
+      - name: Prepare publish snapshot
         shell: bash
         run: |
           set -euo pipefail
 
-          rm -rf "${PUBLISH_DIR}"
-          mkdir -p "${PUBLISH_DIR}"
+          test -d "${PUBLISH_DIR}"
+          test -f "${PUBLISH_DIR}/.nojekyll"
+          test -f "${PUBLISH_DIR}/CNAME"
 
-          rsync -a --delete \
-            --exclude='.git/' \
-            --exclude='.github/' \
-            --exclude='.githooks/' \
-            --exclude='.agents/' \
-            --exclude='.gitattributes' \
-            --exclude='AGENTS.md' \
-            --exclude='CLAUDE.md' \
-            --exclude='docs/ai/' \
-            --exclude="start-local-server.*" \
-            --exclude="${PUBLISH_DIR}/" \
-            "${SOURCE_DIR}/" "${PUBLISH_DIR}/"
-
-          touch "${PUBLISH_DIR}/.nojekyll"
           cat > "${PUBLISH_DIR}/.gitattributes" <<'ATTRIBUTES'
           # Disable Git LFS filters on the published Pages branch.
           * -filter -diff -merge

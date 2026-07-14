@@ -59,16 +59,59 @@ test("pnpm keeps its supply-chain guard while allowing reviewed builds", async (
 test("TypeScript excludes generated and user-tool directories", async () => {
   const config = JSON.parse(await read("tsconfig.json"));
 
-  assert.deepEqual(config.exclude.sort(), [
-    ".kilo",
-    ".playwright-mcp",
-    "build",
-    "dist",
-  ]);
+  assert.deepEqual(config.exclude.sort(), [".kilo", ".playwright-mcp", "build", "dist"]);
 });
 
 test("analytics scripts declare their inline execution explicitly", async () => {
   const component = await read("src/components/shared/Analytics.astro");
 
   assert.equal(component.match(/\bis:inline\b/g)?.length, 3);
+});
+
+test("local launchers keep Astro attached to the foreground", async () => {
+  const launchers = await Promise.all(
+    ["start-local-server.ps1", "start-local-server.sh", "start-local-server.cmd"].map(read),
+  );
+
+  for (const launcher of launchers) {
+    assert.match(launcher, /pnpm/);
+    assert.match(launcher, /dev/);
+    assert.match(launcher, /ASTRO_DEV_BACKGROUND/);
+    assert.doesNotMatch(launcher, /local-web-server\.mjs/);
+  }
+
+  assert.match(launchers[0], /& pnpm dev/);
+  assert.match(launchers[1], /exec pnpm dev/);
+  assert.match(launchers[2], /pnpm dev/);
+  await assert.rejects(read("scripts/local-web-server.mjs"), {
+    code: "ENOENT",
+  });
+});
+
+test("Pages workflow builds with pnpm and publishes only dist", async () => {
+  const workflow = await read(".github/workflows/deploy-gh-pages.yml");
+
+  for (const token of [
+    "PUBLISH_DIR: source/dist",
+    "pnpm/action-setup@v6",
+    "actions/setup-node@v6",
+    "version: 11",
+    "node-version: 24",
+    "cache: pnpm",
+    "pnpm install --frozen-lockfile",
+    "pnpm build",
+    "bash .githooks/lfs-guard.sh --tree HEAD",
+    "git lfs fsck --pointers",
+    "git lfs fetch origin HEAD",
+    "git lfs fsck --objects",
+    'if [ -z "${WEBSITE_DEPLOY_KEY}" ]',
+    "StrictHostKeyChecking=yes",
+    "GITHUB_REPOSITORY",
+    'git push --force origin "HEAD:${PUBLISH_BRANCH}"',
+  ]) {
+    assert.ok(workflow.includes(token), `missing workflow token: ${token}`);
+  }
+
+  assert.doesNotMatch(workflow, /\b_site\b/);
+  assert.doesNotMatch(workflow, /\brsync\b/);
 });

@@ -11,14 +11,19 @@ const sharedTokens = [
   "沪ICP备2026032805号-1",
 ];
 
-test("legacy root keeps every redirect fallback", async () => {
-  const html = await read("index.html");
-  assert.match(html, /rel="canonical" href="\.\/we-are-back\/"/);
-  assert.match(html, /http-equiv="refresh" content="0; url=\.\/we-are-back\/"/);
-  assert.match(html, /window\.location\.replace\("\.\/we-are-back\/"\)/);
-  assert.match(html, /href="\.\/we-are-back\/"/);
+test("Astro root keeps every redirect fallback", async () => {
+  const files = await Promise.all(
+    ["src/pages/index.astro", "src/layouts/BaseLayout.astro", "src/components/shared/Analytics.astro"].map(read),
+  );
+  const source = files.join("\n");
+
+  assert.match(source, /canonical="\.\/we-are-back\/"/);
+  assert.match(source, /http-equiv="refresh"/);
+  assert.match(source, /content="0; url=\.\/we-are-back\/"/);
+  assert.match(source, /window\.location\.replace\("\.\/we-are-back\/"\)/);
+  assert.match(source, /href="\.\/we-are-back\/"/);
   for (const token of sharedTokens.slice(0, 2)) {
-    assert.ok(html.includes(token), `missing root token: ${token}`);
+    assert.ok(source.includes(token), `missing root token: ${token}`);
   }
 });
 

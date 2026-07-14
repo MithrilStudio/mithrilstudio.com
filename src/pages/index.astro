@@ -3,16 +3,8 @@ import Analytics from "../components/shared/Analytics.astro";
 import BaseLayout from "../layouts/BaseLayout.astro";
 ---
 
-<BaseLayout
-  title="Mithril Studio"
-  htmlLang="en-US"
-  canonical="./we-are-back/"
->
-  <meta
-    slot="head"
-    http-equiv="refresh"
-    content="0; url=./we-are-back/"
-  />
+<BaseLayout title="Mithril Studio" htmlLang="en-US" canonical="./we-are-back/">
+  <meta slot="head" http-equiv="refresh" content="0; url=./we-are-back/" />
   <script slot="head" is:inline>
     window.location.replace("./we-are-back/");
   </script>
