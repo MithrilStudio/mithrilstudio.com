@@ -12,6 +12,7 @@
     "format:check": "prettier --check --ignore-unknown .",
     "test:source": "node --test tests/legacy-contract.test.mjs tests/project-contract.test.mjs",
     "test:output": "node --test tests/output-contract.test.mjs",
+    "test:browser": "playwright test --project=msedge",
     "verify": "pnpm run \"/^verify:(astro|format|source)$/\"",
     "verify:astro": "astro check",
     "verify:format": "prettier --check --ignore-unknown .",

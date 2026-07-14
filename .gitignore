@@ -21,6 +21,8 @@ id_rsa*
 /.astro/
 /dist/
 /node_modules/
+/playwright-report/
+/test-results/
 
 # SSH 已知主机与本地会话
 known_hosts

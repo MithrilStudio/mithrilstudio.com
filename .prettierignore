@@ -7,5 +7,7 @@ CLAUDE.md
 dist/
 docs/superpowers/
 node_modules/
+playwright-report/
 pnpm-lock.yaml
 public/static/
+test-results/

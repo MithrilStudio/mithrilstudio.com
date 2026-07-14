@@ -33,6 +33,7 @@ test("project metadata uses compatible ranges and pnpm scripts", async () => {
 
   assert.match(pkg.scripts.verify, /verify:\(astro\|format\|source\)/);
   assert.equal(pkg.scripts.build, "pnpm verify && astro build && pnpm test:output");
+  assert.equal(pkg.scripts["test:browser"], "playwright test --project=msedge");
   assert.equal(pkg.scripts["verify:astro"], "astro check");
   assert.equal(pkg.scripts["verify:format"], "prettier --check --ignore-unknown .");
   assert.equal(pkg.scripts["verify:source"], "pnpm test:source");
@@ -44,6 +45,7 @@ test("Astro emits a static custom-domain site through Tailwind Vite", async () =
   assert.match(config, /site:\s*"https:\/\/mithrilstudio\.com"/);
   assert.match(config, /output:\s*"static"/);
   assert.match(config, /tailwindcss\(\)/);
+  assert.match(config, /cssMinify:\s*false/);
   assert.doesNotMatch(config, /\bbase\s*:/);
 });
 

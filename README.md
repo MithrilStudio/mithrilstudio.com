@@ -23,13 +23,14 @@ On Windows, `.\start-local-server.ps1` is the convenience entry point. `start-lo
 
 Useful commands:
 
-| Command        | Purpose                                                                    |
-| -------------- | -------------------------------------------------------------------------- |
-| `pnpm dev`     | Start Astro's development server                                           |
-| `pnpm verify`  | Run independent Astro, formatting, and source-contract checks concurrently |
-| `pnpm build`   | Verify, build once into `dist/`, and validate the generated snapshot       |
-| `pnpm preview` | Serve the latest production build locally                                  |
-| `pnpm format`  | Format maintained text and source files                                    |
+| Command             | Purpose                                                                    |
+| ------------------- | -------------------------------------------------------------------------- |
+| `pnpm dev`          | Start Astro's development server                                           |
+| `pnpm verify`       | Run independent Astro, formatting, and source-contract checks concurrently |
+| `pnpm build`        | Verify, build once into `dist/`, and validate the generated snapshot       |
+| `pnpm preview`      | Serve the latest production build locally                                  |
+| `pnpm test:browser` | Run production-preview behavior tests in Microsoft Edge                    |
+| `pnpm format`       | Format maintained text and source files                                    |
 
 ## Project layout
 
