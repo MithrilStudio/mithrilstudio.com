@@ -47,6 +47,6 @@ Direct dependencies use compatible caret ranges in `package.json`; `pnpm-lock.ya
 
 ## Publishing
 
-`.github/workflows/deploy-gh-pages.yml` checks out real Git LFS objects, installs from the frozen lockfile, runs `pnpm build`, rejects any LFS pointer that reaches `dist/`, and force-pushes only that generated snapshot to `gh-pages`.
+`.github/workflows/deploy-gh-pages.yml` checks out real Git LFS objects, installs from the frozen lockfile, runs `pnpm build`, rejects any LFS pointer that reaches `dist/`, and force-pushes only that generated snapshot to `gh-pages`. The custom-domain `CNAME` is not committed; the workflow writes it into `dist/` from the `CNAME` Repository variable during each deploy.
 
 Publishing retains the existing `WEBSITE_DEPLOY_KEY` secret and `GITHUB_REPOSITORY` remote contract. Source-only files such as agent instructions, documentation, tests, and package metadata never enter the published directory.

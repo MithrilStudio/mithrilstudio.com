@@ -93,9 +93,9 @@ test("built 404 is the root custom error document", async () => {
   await assert.rejects(stat(new URL("404/index.html", dist)), { code: "ENOENT" });
 });
 
-test("custom-domain publication artifacts are copied verbatim", async () => {
-  assert.equal((await readDist("CNAME")).trim(), "mithrilstudio.com");
+test("nojekyll is copied and CNAME is not provisioned locally", async () => {
   assert.equal(await readDist(".nojekyll"), "");
+  await assert.rejects(stat(new URL("CNAME", dist)), { code: "ENOENT" });
 });
 
 test("built publication has expanded assets and no LFS pointers", async () => {

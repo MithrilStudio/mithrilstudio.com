@@ -35,6 +35,7 @@
 - GitHub Pages cannot serve Git LFS pointer files as usable assets. Keep the publish workflow checks that detect LFS pointers.
 - When changing binary assets, verify `.gitattributes`, Git LFS state, and the published branch behavior instead of guessing from filenames.
 - Publish only Astro's generated `dist/` snapshot. AI-maintenance files, tests, source files, and package metadata are not site content.
+- The custom-domain `CNAME` is provisioned at publish time from the `CNAME` Repository variable and written into `dist/`; do not commit a `public/CNAME` file. The publish workflow fails if that variable is missing or not a bare domain.
 - Never commit secrets, tokens, local snapshots, or temporary outputs. Use `development/secret/` for local secrets if ever needed; it is ignored by git.
 - Put temporary diagnostics under `build/<task-name>/` and clean them before finishing unless they are intentionally indexed.
 
@@ -45,6 +46,12 @@
 - For local server changes, verify both `pnpm dev` and `pnpm preview`, including byte-range responses for background video.
 - For deploy workflow changes, validate YAML structure and confirm that only `source/dist` is published after frozen installation and build.
 - If markdown tooling is available, run markdownlint on changed Markdown files. If it is unavailable, perform a local structural check and state that boundary.
+
+## Documentation Maintenance
+
+- Treat Git as the version history. Keep each document as a single current version: edit files in place and never retain dated filename copies (for example `2026-07-15-*.md`) or in-file dated history/changelog sections. The prior state is always recoverable from `git log`.
+- `docs/` holds living reference only. One-time migration plans, design specs, and task checklists are transient: delete them once the work is merged and its acceptance criteria pass. The commit history and pull request preserve the record; keep an Architecture Decision Record instead only when a decision's context and rationale must be retained permanently.
+- The `Last checked` / `Next review` columns in `docs/ai/source-index.md` are the exception: they are a current-state review schedule holding one up-to-date value per row, not version history, and stay as single values refreshed in place.
 
 ## AI Prompt Maintenance
 

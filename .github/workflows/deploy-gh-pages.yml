@@ -71,11 +71,22 @@ jobs:
 
       - name: Prepare publish snapshot
         shell: bash
+        env:
+          CNAME: ${{ vars.CNAME }}
         run: |
           set -euo pipefail
 
           test -d "${PUBLISH_DIR}"
           test -f "${PUBLISH_DIR}/.nojekyll"
+
+          cname=$(printf '%s' "${CNAME}" | tr -d '\r' | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')
+          case "${cname}" in
+            '' | *[[:space:]]*)
+              echo "CNAME Repository variable is missing or not a bare domain; cannot provision a custom domain." >&2
+              exit 1
+              ;;
+          esac
+          printf '%s\n' "${cname}" > "${PUBLISH_DIR}/CNAME"
           test -f "${PUBLISH_DIR}/CNAME"
 
           cat > "${PUBLISH_DIR}/.gitattributes" <<'ATTRIBUTES'
