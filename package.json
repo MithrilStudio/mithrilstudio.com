@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "astro dev",
-    "build": "pnpm verify && astro build && pnpm test:output",
+    "build": "npm verify && astro build && npm test:output",
     "preview": "astro preview",
     "check": "astro check",
     "format": "prettier --write .",
@@ -13,10 +13,10 @@
     "test:source": "node --test tests/legacy-contract.test.mjs tests/project-contract.test.mjs",
     "test:output": "node --test tests/output-contract.test.mjs",
     "test:browser": "playwright test --project=msedge",
-    "verify": "pnpm run \"/^verify:(astro|format|source)$/\"",
+    "verify": "npm run \"/^verify:(astro|format|source)$/\"",
     "verify:astro": "astro check",
     "verify:format": "prettier --check --ignore-unknown .",
-    "verify:source": "pnpm test:source"
+    "verify:source": "npm test:source"
   },
   "engines": {
     "node": ">=24 <25",
