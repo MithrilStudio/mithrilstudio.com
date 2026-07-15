@@ -58,7 +58,7 @@ test("Astro landing source preserves the legacy contract in focused units", asyn
     "BACKGROUND_PLAY_RETRY_DELAYS_MS = [0, 300, 1200]",
     "BACKGROUND_PAUSE_RESUME_DELAYS_MS = [80, 300, 1200]",
     "https://store.steampowered.com/app/4864320",
-    "https://www.youtube.com/watch?v=4CpC8Gbq9D0",
+    "https://www.youtube.com/watch?v=LNXwNEvDnOo",
     "https://discord.gg/qs2WB5ARqr",
     "mailto:contact@myrionstudio.com",
     ...sharedTokens,

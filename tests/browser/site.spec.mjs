@@ -52,7 +52,7 @@ test("landing reveal, links, media fallback, and pause recovery remain intact", 
   const links = page.locator(".hero-links a");
   await expect(links).toHaveCount(4);
   await expect(links.nth(0)).toHaveAttribute("href", "https://store.steampowered.com/app/4864320");
-  await expect(links.nth(1)).toHaveAttribute("href", "https://www.youtube.com/watch?v=4CpC8Gbq9D0");
+  await expect(links.nth(1)).toHaveAttribute("href", "https://www.youtube.com/watch?v=LNXwNEvDnOo");
   await expect(links.nth(2)).toHaveAttribute("href", "https://discord.gg/qs2WB5ARqr");
   await expect(links.nth(3)).toHaveAttribute("href", "mailto:contact@myrionstudio.com");
   for (let index = 0; index < 4; index += 1) {

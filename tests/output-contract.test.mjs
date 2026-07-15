@@ -62,7 +62,7 @@ test("built landing keeps the immutable public contract", async () => {
     "../static/bg_4k.mp4",
     "Unveil",
     "https://store.steampowered.com/app/4864320",
-    "https://www.youtube.com/watch?v=4CpC8Gbq9D0",
+    "https://www.youtube.com/watch?v=LNXwNEvDnOo",
     "https://discord.gg/qs2WB5ARqr",
     "mailto:contact@myrionstudio.com",
     "沪ICP备2026032805号-1",
