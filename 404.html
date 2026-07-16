@@ -1,0 +1,138 @@
+<!DOCTYPE html><html lang="en-US"><head><meta charset="UTF-8"><script>
+      (() => {
+        const host = (window.location.hostname || "").toLowerCase();
+        let target = null;
+        if (host === "www.mithrilstudio.com") {
+          target = "www.myrionstudio.com";
+        } else if (host === "mithrilstudio.com" || host === "localhost") {
+          target = "myrionstudio.com";
+        }
+        if (target) {
+          window.__CROSS_DOMAIN_REDIRECT__ = true;
+          window.location.replace(
+            window.location.protocol +
+              "//" +
+              target +
+              window.location.pathname +
+              window.location.search +
+              window.location.hash,
+          );
+        }
+      })();
+    </script><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Page Not Found</title><meta name="robots" content="noindex"><script>(() => {
+  const documentElement = document.documentElement;
+  const languages =
+    Array.isArray(navigator.languages) && navigator.languages.length
+      ? navigator.languages
+      : [navigator.language || documentElement.lang || "en-US"];
+  const normalizedLanguages = languages.map((language) => language.toLowerCase());
+  const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone || "";
+  const mainlandChinaTimeZones = new Set([
+    "Asia/Shanghai",
+    "Asia/Urumqi",
+    "Asia/Chongqing",
+    "Asia/Chungking",
+    "Asia/Harbin",
+    "Asia/Kashgar",
+    "PRC",
+  ]);
+  const shouldAvoidGoogleFonts =
+    mainlandChinaTimeZones.has(timeZone) ||
+    normalizedLanguages.some((language) => /^zh(?:$|-hans\b|-cn\b)/.test(language));
+
+  const fontFaces = {
+    google: {
+      body: "Noto+Sans",
+      heading: "Cinzel",
+      serif: "Noto+Serif",
+    },
+    jsdelivr: {
+      body: "https://cdn.jsdelivr.net/npm/@fontsource-variable/noto-sans@latest/wght.css",
+      heading: "https://cdn.jsdelivr.net/npm/@fontsource-variable/cinzel@latest/wght.css",
+      serif: "https://cdn.jsdelivr.net/npm/@fontsource-variable/noto-serif@latest/wght.css",
+    },
+  };
+
+  const addPreconnect = (href, crossOrigin = false) => {
+    const link = document.createElement("link");
+    link.rel = "preconnect";
+    link.href = href;
+    if (crossOrigin) {
+      link.crossOrigin = "";
+    }
+    document.head.append(link);
+  };
+
+  const addStylesheet = (href, onError) => {
+    const link = document.createElement("link");
+    link.rel = "stylesheet";
+    link.href = href;
+    if (onError) {
+      link.addEventListener("error", onError, { once: true });
+    }
+    document.head.append(link);
+  };
+
+  const loadJsDelivrFonts = () => {
+    documentElement.dataset.fontCdn = "jsdelivr";
+    addPreconnect("https://cdn.jsdelivr.net");
+    addStylesheet(fontFaces.jsdelivr.body);
+    addStylesheet(fontFaces.jsdelivr.heading);
+    addStylesheet(fontFaces.jsdelivr.serif);
+  };
+
+  if (shouldAvoidGoogleFonts) {
+    loadJsDelivrFonts();
+    return;
+  }
+
+  documentElement.dataset.fontCdn = "google";
+  addPreconnect("https://fonts.googleapis.com");
+  addPreconnect("https://fonts.gstatic.com", true);
+  addStylesheet(
+    `https://fonts.googleapis.com/css2?family=${fontFaces.google.heading}:wght@400;600;700&family=${fontFaces.google.serif}:wght@400;500;600;700&family=${fontFaces.google.body}:wght@400;500;600;700&display=swap`,
+    loadJsDelivrFonts,
+  );
+})();
+</script><link rel="stylesheet" href="/_astro/404.BfVJrkDD.css"></head><body><main class="not-found-page" aria-labelledby="notFoundTitle"><div class="not-found-background" aria-hidden="true"><img src="/static/bg.jpg" alt="" class="not-found-media"><video id="notFoundVideo" class="not-found-media not-found-video" src="/static/bg.mp4" poster="/static/bg.jpg" autoplay muted loop playsinline webkit-playsinline preload="auto" controlslist="nodownload noplaybackrate noremoteplayback" disablepictureinpicture disableRemotePlayback draggable="false" aria-hidden="true"></video></div><div class="not-found-content"><div class="not-found-inner"><h1 class="not-found-code">404</h1><h2 id="notFoundTitle" class="not-found-title">This Gate Is Missing</h2><p class="not-found-copy">The page you requested is not here. Return to the relaunch page and continue from the main hall.</p><nav class="not-found-actions" aria-label="404 navigation"><a class="not-found-button" href="/we-are-back/">Return Home</a></nav></div></div><div class="not-found-highlight" aria-hidden="true"><img src="/static/bottom_highlight.png" alt=""></div></main><footer id="icpFiling" class="icp-filing" aria-label="ICP 备案信息"><a href="https://beian.miit.gov.cn/" target="_blank" rel="noopener noreferrer">沪ICP备2026032805号-1</a></footer><script>(() => {
+  const hostname = (window.location.hostname || "").toLowerCase();
+  const isLocalhost = hostname === "localhost" || hostname === "127.0.0.1" || hostname === "::1";
+  const isMyrionDomain = hostname === "myrionstudio.com" || hostname.endsWith(".myrionstudio.com");
+  if (!isLocalhost && !isMyrionDomain) {
+    return;
+  }
+
+  const languages =
+    Array.isArray(navigator.languages) && navigator.languages.length ? navigator.languages : [navigator.language || ""];
+  const normalizedLanguages = languages.map((language) => (language || "").toLowerCase());
+  const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone || "";
+  const mainlandChinaTimeZones = new Set([
+    "Asia/Shanghai",
+    "Asia/Urumqi",
+    "Asia/Chongqing",
+    "Asia/Chungking",
+    "Asia/Harbin",
+    "Asia/Kashgar",
+    "PRC",
+  ]);
+  const isSimplifiedChinese = normalizedLanguages.some((language) => /^zh(?:$|-hans\b|-cn\b)/.test(language));
+  const isChinaTimezone = mainlandChinaTimeZones.has(timeZone);
+
+  if (!isSimplifiedChinese && !isChinaTimezone) {
+    return;
+  }
+
+  const filing = document.getElementById("icpFiling");
+  if (filing) {
+    filing.classList.add("is-visible");
+  }
+})();
+</script><script type="module">(()=>{let e=document.getElementById(`notFoundVideo`);if(!e)return;let t=e=>{e.autoplay=!0,e.defaultMuted=!0,e.muted=!0,e.loop=!0,e.playsInline=!0,e.preload=`auto`,e.disablePictureInPicture=!0,e.disableRemotePlayback=!0,e.draggable=!1,e.setAttribute(`playsinline`,``),e.setAttribute(`webkit-playsinline`,``),e.setAttribute(`controlslist`,`nodownload noplaybackrate noremoteplayback`),e.setAttribute(`disablepictureinpicture`,``),e.setAttribute(`disableremoteplayback`,``),e.setAttribute(`aria-hidden`,`true`)},n=e=>{t(e);let n=e.play();n&&n.catch(()=>{})};e.addEventListener(`playing`,()=>{e.classList.add(`is-ready`),e.removeAttribute(`poster`)}),n(e),[`pointerdown`,`click`,`touchstart`,`keydown`].forEach(t=>{window.addEventListener(t,()=>n(e),{passive:!0})})})();</script><!-- Google tag (gtag.js) --><script async src="https://www.googletagmanager.com/gtag/js?id=G-TYCXYX29SE"></script><script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag() {
+    dataLayer.push(arguments);
+  }
+  gtag("js", new Date());
+
+  gtag("config", "G-TYCXYX29SE");
+</script><!-- Cloudflare Web Analytics --><script async src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon="{&quot;token&quot;: &quot;39a8f49e9a834a78b557a304d7ed5dc7&quot;}"></script><!-- End Cloudflare Web Analytics --></body></html>

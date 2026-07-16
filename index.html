@@ -1,0 +1,34 @@
+<!DOCTYPE html><html lang="en-US"><head><meta charset="UTF-8"><script>
+      (() => {
+        const host = (window.location.hostname || "").toLowerCase();
+        let target = null;
+        if (host === "www.mithrilstudio.com") {
+          target = "www.myrionstudio.com";
+        } else if (host === "mithrilstudio.com" || host === "localhost") {
+          target = "myrionstudio.com";
+        }
+        if (target) {
+          window.__CROSS_DOMAIN_REDIRECT__ = true;
+          window.location.replace(
+            window.location.protocol +
+              "//" +
+              target +
+              window.location.pathname +
+              window.location.search +
+              window.location.hash,
+          );
+        }
+      })();
+    </script><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Mithril Studio</title><link rel="canonical" href="./we-are-back/"><meta http-equiv="refresh" content="0; url=./we-are-back/"><script>
+    if (!window.__CROSS_DOMAIN_REDIRECT__) {
+      window.location.replace("./we-are-back/");
+    }
+  </script></head><body><p><a href="./we-are-back/">Continue to Mithril Studio</a></p><!-- Google tag (gtag.js) --><script async src="https://www.googletagmanager.com/gtag/js?id=G-TYCXYX29SE"></script><script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag() {
+    dataLayer.push(arguments);
+  }
+  gtag("js", new Date());
+
+  gtag("config", "G-TYCXYX29SE");
+</script><!-- Cloudflare Web Analytics --><script async src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon="{&quot;token&quot;: &quot;39a8f49e9a834a78b557a304d7ed5dc7&quot;}"></script><!-- End Cloudflare Web Analytics --></body></html>

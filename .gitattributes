@@ -1,0 +1,7 @@
+# Disable Git LFS filters on the published Pages branch.
+* -filter -diff -merge
+*.html text eol=lf
+*.css text eol=lf
+*.js text eol=lf
+CNAME text eol=lf
+.nojekyll text eol=lf
