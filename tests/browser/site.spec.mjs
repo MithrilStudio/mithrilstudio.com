@@ -7,6 +7,43 @@ const blockExternalRequests = async (page) => {
   await page.route(/^https?:\/\/(?!127\.0\.0\.1(?::\d+)?(?:\/|$)).+/, (route) => route.abort());
 };
 
+const serveFromLocal = (baseURL) => async (route) => {
+  const localUrl = route
+    .request()
+    .url()
+    .replace(/^https?:\/\/[^/]+/, baseURL);
+  try {
+    const response = await route.fetch({ url: localUrl });
+    await route.fulfill({ response });
+  } catch {
+    await route.abort();
+  }
+};
+
+test("cross-domain redirect maps mithrilstudio.com to myrionstudio.com preserving path and query", async ({
+  page,
+  baseURL,
+}) => {
+  await page.route("**/*", serveFromLocal(baseURL));
+
+  await page
+    .goto("http://mithrilstudio.com/we-are-back/?utm_source=test", { waitUntil: "domcontentloaded" })
+    .catch(() => {});
+  await expect(page).toHaveURL(/^http:\/\/myrionstudio\.com\/we-are-back\/\?utm_source=test$/);
+
+  await page
+    .goto("http://www.mithrilstudio.com/we-are-back/?ref=launch", { waitUntil: "domcontentloaded" })
+    .catch(() => {});
+  await expect(page).toHaveURL(/^http:\/\/www\.myrionstudio\.com\/we-are-back\/\?ref=launch$/);
+});
+
+test("cross-domain redirect on the root wins over the legacy root-to-landing redirect", async ({ page, baseURL }) => {
+  await page.route("**/*", serveFromLocal(baseURL));
+
+  await page.goto("http://mithrilstudio.com/", { waitUntil: "domcontentloaded" }).catch(() => {});
+  await expect(page).toHaveURL(/^http:\/\/myrionstudio\.com\/we-are-back\/$/);
+});
+
 test("root navigation reaches the unchanged landing route", async ({ page }) => {
   await blockExternalRequests(page);
   await page.goto("/", { waitUntil: "domcontentloaded" });

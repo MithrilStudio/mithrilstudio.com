@@ -11,6 +11,31 @@ const sharedTokens = [
   "沪ICP备2026032805号-1",
 ];
 
+test("BaseLayout adds a cross-domain redirect that maps mithrilstudio.com to myrionstudio.com", async () => {
+  const source = await read("src/layouts/BaseLayout.astro");
+
+  // Legacy apex and www hosts are each mapped to their myrionstudio.com counterpart.
+  assert.match(source, /host === "www\.mithrilstudio\.com"/);
+  assert.match(source, /target = "www\.myrionstudio\.com"/);
+  assert.match(source, /host === "mithrilstudio\.com"/);
+  assert.match(source, /target = "myrionstudio\.com"/);
+
+  // Path, query, and hash are preserved; the navigation is a replace, not a history push.
+  assert.match(source, /window\.location\.pathname/);
+  assert.match(source, /window\.location\.search/);
+  assert.match(source, /window\.location\.hash/);
+  assert.match(source, /window\.location\.replace/);
+});
+
+test("root redirect yields to the cross-domain redirect", async () => {
+  const index = await read("src/pages/index.astro");
+
+  // The legacy root-to-landing fallback must still exist...
+  assert.match(index, /window\.location\.replace\("\.\/we-are-back\/"\)/);
+  // ...but only fire when the cross-domain redirect has not already taken over.
+  assert.match(index, /__CROSS_DOMAIN_REDIRECT__/);
+});
+
 test("Astro root keeps every redirect fallback", async () => {
   const files = await Promise.all(
     ["src/pages/index.astro", "src/layouts/BaseLayout.astro", "src/components/shared/Analytics.astro"].map(read),

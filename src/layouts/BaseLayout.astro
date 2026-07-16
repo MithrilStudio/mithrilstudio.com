@@ -14,6 +14,28 @@ const { title, description, canonical, htmlLang = "en", bodyClass } = Astro.prop
 <html lang={htmlLang}>
   <head>
     <meta charset="UTF-8" />
+    <script is:inline>
+      (() => {
+        const host = (window.location.hostname || "").toLowerCase();
+        let target = null;
+        if (host === "www.mithrilstudio.com") {
+          target = "www.myrionstudio.com";
+        } else if (host === "mithrilstudio.com" || host === "localhost") {
+          target = "myrionstudio.com";
+        }
+        if (target) {
+          window.__CROSS_DOMAIN_REDIRECT__ = true;
+          window.location.replace(
+            window.location.protocol +
+              "//" +
+              target +
+              window.location.pathname +
+              window.location.search +
+              window.location.hash,
+          );
+        }
+      })();
+    </script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>{title}</title>
     {description && <meta name="description" content={description} />}

@@ -45,12 +45,26 @@ const walkFiles = async (directory) => {
   return files;
 };
 
+test("built pages carry the cross-domain redirect from mithrilstudio.com to myrionstudio.com", async () => {
+  for (const path of ["index.html", "we-are-back/index.html", "404.html"]) {
+    const html = await readDist(path);
+    assert.match(html, /www\.mithrilstudio\.com/, `redirect www source host missing in ${path}`);
+    assert.match(html, /www\.myrionstudio\.com/, `redirect www target host missing in ${path}`);
+    assert.match(html, /mithrilstudio\.com/, `redirect apex source host missing in ${path}`);
+    assert.match(html, /myrionstudio\.com/, `redirect apex target host missing in ${path}`);
+    assert.match(html, /window\.location\.pathname/, `path preservation missing in ${path}`);
+    assert.match(html, /window\.location\.search/, `query preservation missing in ${path}`);
+    assert.match(html, /window\.location\.hash/, `hash preservation missing in ${path}`);
+  }
+});
+
 test("built root keeps every redirect fallback", async () => {
   const html = await readDist("index.html");
   assert.match(html, /rel="canonical" href="\.\/we-are-back\/"/);
   assert.match(html, /http-equiv="refresh" content="0; url=\.\/we-are-back\/"/);
   assert.match(html, /window\.location\.replace\("\.\/we-are-back\/"\)/);
   assert.match(html, /href="\.\/we-are-back\/"/);
+  assert.match(html, /__CROSS_DOMAIN_REDIRECT__/);
 });
 
 test("built landing keeps the immutable public contract", async () => {
